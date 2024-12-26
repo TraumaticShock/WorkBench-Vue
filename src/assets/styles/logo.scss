@@ -1,0 +1,21 @@
+.logo {
+  font-family: 'Inter', sans-serif; // 使用 Inter 字体
+  letter-spacing: 8px; // 字母间距
+  font-weight: 600; // 字重
+
+  .top {
+    color: #3366ff; // 上部文字颜色
+  }
+
+  .divider {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #1a1a1a; // 分隔线颜色
+    margin: 4px 0;
+  }
+
+  .bottom {
+    color: #1a1a1a; // 下部文字颜色
+  }
+}
