@@ -29,5 +29,7 @@ defineProps<{
     pending: number
     completed: number
     completionRate: number
+    todayCount: number
+    yesterdayCount: number
 }>()
 </script>

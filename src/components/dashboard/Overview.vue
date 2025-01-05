@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useTodoStore } from '@/stores/todo'
-import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
+import { useWorkDurationStore } from '@/stores/workDuration'
 
 const todoStore = useTodoStore();
+const workDurationStore = useWorkDurationStore();
+
 const { todayStats } = storeToRefs(todoStore);
+const { workDuration } = storeToRefs(workDurationStore);
 
 onMounted(async () => {
     await todoStore.getTodayTodo();
+    await workDurationStore.getWorkDurationToday();
+});
+
+onUnmounted(() => {
+    workDurationStore.stopTimer();
 });
 </script>
 
@@ -16,18 +24,16 @@ onMounted(async () => {
     <div class="stats shadow w-full bg-base-200 mb-6">
         <div class="stat">
             <div class="stat-title">今日待办</div>
-            <div class="stat-value">{{ todayStats?.countToday || 0 }}</div>
+            <div class="stat-value">{{ todayStats?.todayCount || 0 }}</div>
             <div class="stat-desc">
-                {{ todayStats?.change > 0 ? '↗︎' : '↘︎' }}
-                {{ Math.abs(todayStats?.change || 0) }} 个比昨天
+                {{ todayStats?.todayCount - todayStats?.yesterdayCount > 0 ? '↗︎' : '↘︎' }}
+                {{ Math.abs(todayStats?.todayCount - todayStats?.yesterdayCount || 0) }} 个比昨天
             </div>
         </div>
         <div class="stat">
             <div class="stat-title">工作时长</div>
-            <div class="stat-value text-primary">6.5h</div>
-            <div class="stat-desc flex items-center gap-1">
-                <div class="radial-progress text-xs" style="--value:65; --size:1.5rem;">65%</div>
-                <span>日目标</span>
+            <div class="stat-value text-primary flex items-center gap-2">
+                {{ workDurationStore.formatDuration(workDuration?.duration || 0) }}
             </div>
         </div>
         <div class="stat">

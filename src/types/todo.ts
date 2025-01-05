@@ -13,9 +13,12 @@ export interface Todo {
 
 // 今日待办事项统计
 export interface TodayTodoStats {
-  countToday: number;
-  countYesterday: number;
-  change: number;
+  todayCount: number;
+  yesterdayCount: number;
+  date: string;
+  status: string | null;
+  priority: string | null;
+  category: string | null;
 }
 
 // 待办事项分类

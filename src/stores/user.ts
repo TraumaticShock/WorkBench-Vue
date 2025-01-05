@@ -1,60 +1,58 @@
 import { defineStore } from 'pinia';
-import type { LoginForm, SignUpForm, UserState, User } from '@/types/user';
+import type { LoginForm, User } from '@/types/user';
 import { userApi } from '@/api/user';
+import { ref, computed } from 'vue';
 
-export const useUserStore = defineStore('user', {
-  state: (): UserState => ({
-    currentUser: null,
-    isAuthenticated: false,
-  }),
+export const useUserStore = defineStore(
+  'user',
+  () => {
+    const currentUser = ref<User | null>(null);
+    const isAuthenticated = ref(false);
 
-  getters: {
-    token: (state) => state.currentUser?.token,
-    refreshToken: (state) => state.currentUser?.refreshToken,
-    userInfo: (state) => state.currentUser,
-  },
+    const token = computed(() => currentUser.value?.token);
+    const refreshToken = computed(() => currentUser.value?.refreshToken);
+    const userInfo = computed(() => currentUser.value);
 
-  actions: {
-    async login(loginForm: LoginForm) {
+    async function login(loginForm: LoginForm) {
       const response = await userApi.login(loginForm);
-      this.setUser(response.data.data);
+      setUser(response.data.data);
       return response.data;
-    },
+    }
 
-    setUser(user: User) {
-      this.currentUser = user;
-      this.isAuthenticated = true;
-    },
+    function setUser(user: User) {
+      currentUser.value = user;
+      isAuthenticated.value = true;
+    }
 
-    logout() {
-      this.currentUser = null;
-      this.isAuthenticated = false;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      sessionStorage.removeItem('token');
-      sessionStorage.removeItem('refreshToken');
-    },
+    function logout() {
+      currentUser.value = null;
+      isAuthenticated.value = false;
+    }
 
-    updateUserInfo(userInfo: Partial<User>) {
-      if (this.currentUser) {
-        this.currentUser = {
-          ...this.currentUser,
-          ...userInfo,
-        };
-      }
-    },
-
-    async signup(form: SignUpForm) {
+    async function refreshTokenFn() {
       try {
-        const { data } = await userApi.register(form);
-        return data;
+        const response = await userApi.refreshToken(refreshToken.value || '');
+        setUser(response.data.data);
+        return response;
       } catch (error) {
+        logout();
         throw error;
       }
-    },
-  },
+    }
 
-  persist: {
-    storage: localStorage,
+    return {
+      currentUser,
+      isAuthenticated,
+      token,
+      refreshToken,
+      userInfo,
+      login,
+      setUser,
+      logout,
+      refreshTokenFn,
+    };
   },
-});
+  {
+    persist: true,
+  }
+);
