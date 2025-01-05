@@ -21,7 +21,4 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-const showMobileSearch = ref(false)
 </script>

@@ -1,22 +1,15 @@
 <template>
-  <div class="flex">
-    <LeftNavigation v-if="showNav" />
-    <div class="flex-1 flex flex-col ml-24">
-      <TopNavigation v-if="showNav" />
-      <div class="flex-1 p-6 pt-16 pb-0">
-        <router-view></router-view>
-      </div>
-    </div>
+  <div class="min-h-screen bg-base-100">
+    <router-view></router-view>
   </div>
 </template>
 
 <script setup lang="ts">
+// 初始化主题
+const initTheme = () => {
+  const savedTheme = localStorage.getItem('theme') || 'light'
+  document.documentElement.setAttribute('data-theme', savedTheme)
+}
 
-import { computed } from 'vue'
-import { useRoute } from 'vue-router'
-
-const route = useRoute()
-const showNav = computed(() => !['Login', 'SignUp'].includes(route.name as string))
+initTheme()
 </script>
-
-<style scoped></style>

@@ -1,21 +1,30 @@
 <template>
-    <div class="card bg-base-200 shadow-xl h-[400px]">
-        <div class="card-body">
+    <div class="card bg-base-200 shadow-xl h-[400px] flex flex-col">
+        <!-- 固定的头部 -->
+        <div class="p-6 pb-2 bg-base-200">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-4">
                     <h2 class="card-title text-sm">待办列表</h2>
                     <div class="flex items-center gap-2 text-xs">
                         <div class="flex items-center gap-1">
-                            <div class="badge badge-sm">全部 12</div>
+                            <div class="badge badge-sm cursor-pointer hover:opacity-80"
+                                :class="{ 'badge-neutral': currentFilter === 'all' }" @click="setFilter('all')">全部 {{
+                                    totalCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <div class="badge badge-error badge-sm">紧急 2</div>
+                            <div class="badge badge-error badge-sm cursor-pointer hover:opacity-80"
+                                :class="{ 'badge-outline': currentFilter !== 'urgent' }" @click="setFilter('urgent')">紧急
+                                {{ urgentCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <div class="badge badge-warning badge-sm">重要 3</div>
+                            <div class="badge badge-warning badge-sm cursor-pointer hover:opacity-80"
+                                :class="{ 'badge-outline': currentFilter !== 'important' }"
+                                @click="setFilter('important')">重要 {{ importantCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <div class="badge badge-success badge-sm">已完成 5</div>
+                            <div class="badge badge-success badge-sm cursor-pointer hover:opacity-80"
+                                :class="{ 'badge-outline': currentFilter !== 'completed' }"
+                                @click="setFilter('completed')">已完成 {{ completedCount }}</div>
                         </div>
                     </div>
                 </div>
@@ -38,8 +47,12 @@
                     </button>
                 </div>
             </div>
+        </div>
+
+        <!-- 可滚动的内容区 -->
+        <div class="flex-1 overflow-y-auto p-6 pt-2">
             <div class="space-y-2">
-                <div v-for="todo in todos" :key="todo.id"
+                <div v-for="todo in filteredTodos" :key="todo.id"
                     class="flex items-center gap-3 p-3 bg-base-100 rounded-lg hover:bg-base-300 transition-colors">
                     <input type="checkbox" :checked="todo.completed" class="checkbox checkbox-sm"
                         @change="toggleTodo(todo.id)" />
@@ -49,12 +62,15 @@
                             <div v-if="todo.priority" :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
                                 {{ getPriorityText(todo.priority) }}
                             </div>
+                            <div v-if="todo.category" class="badge badge-ghost badge-sm">
+                                {{ todo.category }}
+                            </div>
                             <div v-if="todo.dueDate" class="text-xs opacity-50">{{ todo.dueDate }}</div>
                         </div>
                         <div v-if="todo.description" class="text-xs opacity-50 mt-1">{{ todo.description }}</div>
                     </div>
                     <div class="flex items-center gap-1">
-                        <button class="btn btn-ghost btn-xs btn-square">
+                        <button class="btn btn-ghost btn-xs btn-square" @click.stop="$emit('edit-todo', todo)">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -76,68 +92,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-const todos = ref([
-    {
-        id: 1,
-        title: '完成项目文档',
-        description: '编写项目技术文档和使用说明',
-        completed: false,
-        priority: 'high',
-        dueDate: '今天 14:00'
-    },
-    {
-        id: 2,
-        title: '代码审查',
-        description: '审查前端新功能代码',
-        completed: false,
-        priority: 'medium',
-        dueDate: '明天'
-    },
-    {
-        id: 3,
-        title: '团队周会',
-        completed: true,
-        priority: 'low',
-        dueDate: '已完成'
-    },
-    {
-        id: 4,
-        title: 'Bug修复',
-        description: '修复用户反馈的登录问题',
-        completed: false,
-        priority: 'low',
-        dueDate: '本周五'
-    }
-])
-
-const getPriorityClass = (priority: string) => {
-    const classes = {
-        high: 'badge-error',
-        medium: 'badge-warning',
-        low: 'badge-info',
-        '': ''
-    }
-    return classes[priority] || ''
-}
-
-const getPriorityText = (priority: string) => {
-    const texts = {
-        high: '紧急',
-        medium: '重要',
-        low: '普通',
-        '': ''
-    }
-    return texts[priority] || ''
-}
-
-const toggleTodo = (id: number) => {
-    const todo = todos.value.find(t => t.id === id)
-    if (todo) {
-        todo.completed = !todo.completed
-    }
-}
 </script>
 
-<style scoped></style>
+<style scoped>
+/* 隐藏 Webkit 浏览器的滚动条 (Chrome, Safari) */
+.overflow-y-auto::-webkit-scrollbar {
+    display: none;
+}
+
+/* 为 Firefox 隐藏滚动条 */
+.overflow-y-auto {
+    scrollbar-width: none;
+}
+</style>

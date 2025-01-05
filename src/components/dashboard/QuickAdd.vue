@@ -4,7 +4,7 @@
             <h2 class="card-title text-sm">快速添加</h2>
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-2">
-                    <button class="btn btn-primary flex-1">
+                    <button class="btn btn-primary flex-1" @click="showTodoModal = true">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -44,4 +44,18 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
+
+const showTodoModal = ref(false)
+
+const categories = ref([
+    { id: '1', name: '工作', icon: '', count: 0 },
+    { id: '2', name: '生活', icon: '', count: 0 },
+    { id: '3', name: '学习', icon: '', count: 0 }
+])
+
+const handleSubmit = (todoData: any) => {
+    showTodoModal.value = false
+}
 </script>

@@ -1,12 +1,12 @@
 <template>
-    <div class="p-4">
+    <div>
         <Overview />
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
             <TrendChart />
             <TaskDistribution />
             <NoteDistribution />
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             <WorkingHoursChart />
             <QuickAdd />
             <RecentActivities />
@@ -15,7 +15,6 @@
             <FileManager />
             <TodoList />
         </div>
-        <Footer />
     </div>
 </template>
 
@@ -29,5 +28,4 @@ import QuickAdd from '@/components/dashboard/QuickAdd.vue'
 import RecentActivities from '@/components/dashboard/RecentActivities.vue'
 import FileManager from '@/components/dashboard/FileManager.vue'
 import TodoList from '@/components/dashboard/TodoList.vue'
-import Footer from '@/components/layout/Footer.vue'
 </script>

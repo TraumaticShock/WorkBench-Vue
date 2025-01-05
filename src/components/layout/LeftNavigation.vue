@@ -35,6 +35,11 @@
                         <path v-else-if="item.icon === 'stats'" stroke-linecap="round" stroke-linejoin="round"
                             stroke-width="2"
                             d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+
+                        <!-- 文件图标 -->
+                        <path v-else-if="item.icon === 'file'" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     <span class="text-xs mt-1">{{ item.name }}</span>
                 </router-link>
@@ -48,10 +53,10 @@ import Logo from '@/components/common/Logo.vue'
 
 const menuItems = [
     { name: '首页', path: '/', icon: 'home' },
-    { name: '代办', path: '/', icon: 'todo' },
-    { name: '笔记', path: '/', icon: 'note' },
-    { name: '关于', path: '/', icon: 'info' },
-    { name: '统计', path: '/', icon: 'stats' },
+    { name: '待办', path: '/todo', icon: 'todo' },
+    { name: '笔记', path: '/notes', icon: 'note' },
+    { name: '文件', path: '/files', icon: 'file' },
+    { name: '关于', path: '/', icon: 'info' }
 ]
 </script>
 
