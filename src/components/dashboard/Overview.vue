@@ -3,12 +3,14 @@ import { onMounted, onUnmounted } from 'vue'
 import { useTodoStore } from '@/stores/todo'
 import { storeToRefs } from 'pinia'
 import { useWorkDurationStore } from '@/stores/workDuration'
+import { workDurationApi } from '@/api/workDuration'
 
 const todoStore = useTodoStore();
 const workDurationStore = useWorkDurationStore();
 
 const { todayStats } = storeToRefs(todoStore);
 const { workDuration } = storeToRefs(workDurationStore);
+
 
 onMounted(async () => {
     await todoStore.getTodayTodo();
@@ -17,6 +19,15 @@ onMounted(async () => {
 
 onUnmounted(() => {
     workDurationStore.stopTimer();
+});
+
+// 监听页面关闭或者刷新
+window.addEventListener('beforeunload', async (event) => {
+    await workDurationStore.updateWorkDuration(); // 在页面刷新或关闭前发送请求
+    // 浏览器会默认弹出提示框，告诉用户是否离开页面，可以在这里自定义提示信息
+    const message = '你有未保存的数据，确定要离开吗？';
+    event.returnValue = message; // 现代浏览器会显示自定义提示信息
+    return message; // 兼容旧版本浏览器
 });
 </script>
 

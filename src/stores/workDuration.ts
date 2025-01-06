@@ -5,8 +5,6 @@ import type { WorkDuration } from '@/types/workDuration';
 
 export const useWorkDurationStore = defineStore('workDuration', () => {
   const workDuration = ref<WorkDuration | null>(null);
-  const workDurationList = ref<WorkDuration[]>([]);
-  const isLoading = ref(false);
   const timer = ref<number | null>(null);
 
   // 获取今天的工作时长
@@ -22,10 +20,29 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
     }
   };
 
+  // 更新工作时长
+  const updateWorkDuration = async () => {
+    if (!workDuration.value) return;
+
+    try {
+      // 获取今天的日期并格式化为 yyyy-MM-dd
+      const today = new Date().toISOString().split('T')[0];
+
+      await workDurationApi.updateWorkDuration(
+        today, // 使用今天的日期
+        workDuration.value.duration
+      );
+    } catch (error) {
+      console.error('更新工作时长失败:', error);
+    }
+  };
+
   // 开始计时器
   const startTimer = () => {
     if (timer.value) return;
+    // window.setInterval() 是一个 JavaScript 方法，用于在指定的时间间隔内重复执行一个指定的函数或代码片段。
     timer.value = window.setInterval(() => {
+      // 如果 workDuration 存在且 endTime 为空，则将 duration 增加 1/3600 小时 = 1秒
       if (workDuration.value && !workDuration.value.endTime) {
         workDuration.value.duration =
           Number(workDuration.value.duration) + 1 / 3600;
@@ -41,25 +58,6 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
     }
   };
 
-  // 获取指定日期范围的工作时长
-  const getWorkDurationByDateRange = async (
-    startDate: string,
-    endDate: string
-  ) => {
-    try {
-      isLoading.value = true;
-      const response = await workDurationApi.getWorkDurationByDateRange(
-        startDate,
-        endDate
-      );
-      workDurationList.value = response.data.data;
-    } catch (error) {
-      console.error('获取工作时长记录失败:', error);
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
   // 格式化时间为时分秒
   const formatDuration = (duration: number) => {
     const hours = Math.floor(duration);
@@ -72,12 +70,10 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
 
   return {
     workDuration,
-    workDurationList,
-    isLoading,
     getWorkDurationToday,
-    getWorkDurationByDateRange,
     startTimer,
     stopTimer,
     formatDuration,
+    updateWorkDuration,
   };
 });
