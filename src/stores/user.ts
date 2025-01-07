@@ -15,8 +15,12 @@ export const useUserStore = defineStore(
 
     async function login(loginForm: LoginForm) {
       const response = await userApi.login(loginForm);
-      setUser(response.data.data);
-      return response.data;
+      if (response.data.code === 200) {
+        setUser(response.data.data);
+        return response.data;
+      } else {
+        throw new Error(response.data.message);
+      }
     }
 
     function setUser(user: User) {
@@ -32,8 +36,12 @@ export const useUserStore = defineStore(
     async function refreshTokenFn() {
       try {
         const response = await userApi.refreshToken(refreshToken.value || '');
-        setUser(response.data.data);
-        return response;
+        if (response.data.code === 200) {
+          setUser(response.data.data);
+          return response;
+        } else {
+          throw new Error(response.data.message);
+        }
       } catch (error) {
         logout();
         throw error;

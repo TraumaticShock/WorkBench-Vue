@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import type { LoginForm } from '@/types/user'
+import { el } from 'element-plus/es/locale'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -21,6 +22,7 @@ const handleSubmit = async () => {
         router.push('/')
     } catch (error: any) {
         console.error('登录失败:', error.message)
+        ElMessage.error(error.message)
     }
 }
 </script>

@@ -12,8 +12,8 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
     const response = await workDurationApi.getWorkDurationToday();
     // 确保 duration 是数字类型
     workDuration.value = {
-      ...response.data.data,
-      duration: Number(response.data.data.duration) || 0,
+      ...response.data.data[0],
+      duration: Number(response.data.data[0].duration) || 0,
     };
     if (workDuration.value && !workDuration.value.endTime) {
       startTimer();
@@ -40,12 +40,10 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
   // 开始计时器
   const startTimer = () => {
     if (timer.value) return;
-    // window.setInterval() 是一个 JavaScript 方法，用于在指定的时间间隔内重复执行一个指定的函数或代码片段。
     timer.value = window.setInterval(() => {
-      // 如果 workDuration 存在且 endTime 为空，则将 duration 增加 1/3600 小时 = 1秒
       if (workDuration.value && !workDuration.value.endTime) {
-        workDuration.value.duration =
-          Number(workDuration.value.duration) + 1 / 3600;
+        // 直接增加秒数，不需要转换为小时
+        workDuration.value.duration = Number(workDuration.value.duration) + 1;
       }
     }, 1000);
   };
@@ -60,9 +58,10 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
 
   // 格式化时间为时分秒
   const formatDuration = (duration: number) => {
-    const hours = Math.floor(duration);
-    const minutes = Math.floor((duration - hours) * 60);
-    const seconds = Math.floor(((duration - hours) * 60 - minutes) * 60);
+    // 输入的 duration 现在是秒数
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    const seconds = Math.floor(duration % 60);
     return `${hours.toString().padStart(2, '0')}:${minutes
       .toString()
       .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;

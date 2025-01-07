@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.30.0",
     "axios": "^1.7.9",
     "echarts": "^5.5.1",
     "element-plus": "^2.9.1",
