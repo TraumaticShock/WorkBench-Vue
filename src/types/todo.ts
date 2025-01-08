@@ -11,10 +11,9 @@ export interface Todo {
   tags?: string[]; // 标签
 }
 
-// 今日待办事项统计
-export interface TodayTodoStats {
-  todayCount: number;
-  yesterdayCount: number;
+// 待办事项数量统计
+export interface TodoCountStats {
+  count: number;
   date: string;
   status: string | null;
   priority: string | null;
