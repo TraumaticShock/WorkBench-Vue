@@ -18,9 +18,9 @@ export const useTodoStore = defineStore('todo', () => {
   // 获取今日待办数量
   async function getTodayCount() {
     todayCount.value = await getTodoStats({
-      timeUnit: 'day',
+      unit: 'day',
       date: new Date().toISOString().split('T')[0],
-      status: 'pending'
+      status: 'pending',
     });
   }
 
@@ -28,29 +28,38 @@ export const useTodoStore = defineStore('todo', () => {
   async function getYesterdayCount() {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     yesterdayCount.value = await getTodoStats({
-      timeUnit: 'day',
+      unit: 'day',
       date: yesterday.toISOString().split('T')[0],
-      status: 'pending'
+      status: 'pending',
     });
   }
 
   // 获取已完成待办数量
   async function getCompleteCount() {
     completeCount.value = await getTodoStats({
-      timeUnit: 'day',
+      unit: 'day',
       date: new Date().toISOString().split('T')[0],
-      status: 'completed'
+      status: 'completed',
     });
   }
 
   // 获取本周已完成代办数量
   async function getWeekCompleteCount() {
     weekCompleteCount.value = await getTodoStats({
-      timeUnit: 'week',
-      status: 'completed'
+      unit: 'week',
+      status: 'completed',
     });
+  }
+
+  // 获取待办分类统计
+  async function getTodoCategoryStats() {
+    const { data } = await todoApi.getTodoStatistics({
+      unit: 'category',
+      status: 'pending',
+    });
+    return data.data;
   }
 
   return {
@@ -61,6 +70,7 @@ export const useTodoStore = defineStore('todo', () => {
     getTodayCount,
     getYesterdayCount,
     getCompleteCount,
-    getWeekCompleteCount
+    getWeekCompleteCount,
+    getTodoCategoryStats,
   };
 });

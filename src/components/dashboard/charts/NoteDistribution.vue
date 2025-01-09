@@ -136,7 +136,7 @@ const notePieChartOption = {
 </script>
 
 <template>
-    <div class="card bg-base-200 shadow-xl min-h-[300px]">
+    <div class="card bg-base-200 shadow-xl h-[300px]">
         <div class="card-body">
             <h2 class="card-title">笔记分类</h2>
             <v-chart class="chart-container" :option="notePieChartOption" autoresize />

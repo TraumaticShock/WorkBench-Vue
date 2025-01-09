@@ -20,8 +20,8 @@
 
 <script setup lang="ts">
 import Overview from '@/components/dashboard/Overview.vue'
-import TrendChart from '@/components/dashboard/charts/TrendChart.vue'
-import TaskDistribution from '@/components/dashboard/charts/TaskDistribution.vue'
+import TrendChart from '@/components/dashboard/charts/TodoTrendChart.vue'
+import TaskDistribution from '@/components/dashboard/charts/TodoDistribution.vue'
 import NoteDistribution from '@/components/dashboard/charts/NoteDistribution.vue'
 import WorkingHoursChart from '@/components/dashboard/charts/WorkingHoursChart.vue'
 import QuickAdd from '@/components/dashboard/QuickAdd.vue'

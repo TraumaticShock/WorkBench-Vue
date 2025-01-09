@@ -100,4 +100,8 @@ onMounted(async () => {
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.chart-container {
+    height: 250px;
+}
+</style>
