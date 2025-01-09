@@ -11,6 +11,15 @@ export interface Todo {
   tags?: string[]; // 标签
 }
 
+// 待办事项统计参数
+export interface TodoStatisticsParams {
+  timeUnit?: 'day' | 'week';
+  date?: string;
+  status?: string;
+  priority?: string;
+  category?: string;
+}
+
 // 待办事项数量统计
 export interface TodoCountStats {
   count: number;

@@ -9,6 +9,17 @@ import {
     GridComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
+import { onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
+import { useTodoStore } from '@/stores/todo'
+
+const todoStore = useTodoStore();
+
+const { weekCompleteCount } = storeToRefs(todoStore);
+
+onMounted(async () => {
+    await todoStore.getWeekCompleteCount();
+});
 
 use([
     CanvasRenderer,
