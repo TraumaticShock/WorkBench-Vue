@@ -8,7 +8,6 @@ export interface Todo {
   dueDate?: string; // 截止日期
   createdAt: string; // 创建时间
   updatedAt: string; // 更新时间
-  tags?: string[]; // 标签
 }
 
 // 待办事项统计参数
@@ -29,12 +28,11 @@ export interface TodoCountStats {
   category: string | null;
 }
 
-// 创建待办表单
+// 创建待办表单数据类型
 export interface CreateTodoForm {
   title: string;
-  description?: string;
   category: string;
-  priority: 'low' | 'medium' | 'high';
-  dueDate?: string;
-  tags?: string[];
+  priority: 'high' | 'medium' | 'low';
+  dueDate: string;
+  description?: string;
 }

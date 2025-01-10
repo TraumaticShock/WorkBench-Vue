@@ -7,7 +7,7 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { use } from 'echarts/core';
 import { CanvasRenderer } from 'echarts/renderers';
 import { LineChart, BarChart } from 'echarts/charts';
@@ -18,6 +18,18 @@ import {
     GridComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
+import { useWorkDurationStore } from '@/stores/workDuration';
+import { ref, onMounted, computed } from 'vue';
+import { storeToRefs } from 'pinia';
+
+// 初始化 store
+const workDurationStore = useWorkDurationStore();
+// 使用 storeToRefs 来保持响应性
+const { workDurationWeek } = storeToRefs(workDurationStore);
+
+onMounted(async () => {
+    await workDurationStore.getWorkDurationWeek();
+});
 
 use([
     CanvasRenderer,
@@ -29,13 +41,8 @@ use([
     GridComponent
 ]);
 
-const mockData = {
-    dates: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-    hours: [6.5, 7.2, 8.1, 6.8, 7.5, 4.2, 3.5],
-    target: [8, 8, 8, 8, 8, 8, 8]
-}
-
-const chartOption = {
+// 使用 computed 来动态更新图表数据
+const chartOption = computed(() => ({
     tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -57,7 +64,7 @@ const chartOption = {
     },
     xAxis: {
         type: 'category',
-        data: mockData.dates,
+        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
         axisLabel: {
             fontSize: 10
         }
@@ -76,7 +83,7 @@ const chartOption = {
         {
             name: '工作时长',
             type: 'bar',
-            data: mockData.hours,
+            data: workDurationWeek.value || [],  // 使用 store 中的数据
             itemStyle: {
                 color: {
                     type: 'linear',
@@ -95,7 +102,7 @@ const chartOption = {
         {
             name: '目标时长',
             type: 'line',
-            data: mockData.target,
+            data: [8, 8, 8, 8, 8, 8, 8],
             lineStyle: {
                 color: '#f87272',
                 type: 'dashed',
@@ -103,7 +110,7 @@ const chartOption = {
             }
         }
     ]
-};
+}));
 </script>
 
 <style scoped></style>

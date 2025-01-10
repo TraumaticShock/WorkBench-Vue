@@ -61,7 +61,7 @@ const handleSubmit = async () => {
                 <button type="submit" class="btn btn-primary w-full">登录</button>
             </form>
             <div class="mt-4 text-sm">
-                还没有账号？ <router-link to="/signup" class="text-primary hover:underline">立即注册</router-link>
+                还没有账号？ <router-link to="/auth/signup" class="text-primary hover:underline">立即注册</router-link>
             </div>
         </div>
     </div>

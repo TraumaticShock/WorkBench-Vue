@@ -1,7 +1,7 @@
 <template>
     <div class="card bg-base-200 shadow-xl h-[400px] flex flex-col">
         <!-- 固定的头部 -->
-        <div class="p-6 pb-2 bg-base-200">
+        <div class="p-6 pb-2">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center gap-4">
                     <h2 class="card-title text-sm">待办列表</h2>
@@ -20,6 +20,11 @@
                             <div class="badge badge-warning badge-sm cursor-pointer hover:opacity-80"
                                 :class="{ 'badge-outline': currentFilter !== 'important' }"
                                 @click="setFilter('important')">重要 {{ importantCount }}</div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="badge badge-accent badge-sm cursor-pointer hover:opacity-80"
+                                :class="{ 'badge-outline': currentFilter !== 'important' }"
+                                @click="setFilter('important')">一般 {{ importantCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-success badge-sm cursor-pointer hover:opacity-80"

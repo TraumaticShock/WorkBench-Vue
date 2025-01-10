@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import type { LoginForm, User } from '@/types/user';
+import type { LoginForm, SignUpForm, User } from '@/types/user';
 import { userApi } from '@/api/user';
 import { ref, computed } from 'vue';
 
@@ -13,6 +13,7 @@ export const useUserStore = defineStore(
     const refreshToken = computed(() => currentUser.value?.refreshToken);
     const userInfo = computed(() => currentUser.value);
 
+    // 登录
     async function login(loginForm: LoginForm) {
       const response = await userApi.login(loginForm);
       if (response.data.code === 200) {
@@ -23,16 +24,30 @@ export const useUserStore = defineStore(
       }
     }
 
+    // 注册
+    async function signup(signupForm: SignUpForm) {
+      const response = await userApi.signup(signupForm);
+      if (response.data.code === 200) {
+        // setUser(response.data.data);
+        return response.data;
+      } else {
+        throw new Error(response.data.message);
+      }
+    }
+
+    // 设置用户
     function setUser(user: User) {
       currentUser.value = user;
       isAuthenticated.value = true;
     }
 
+    // 登出
     function logout() {
       currentUser.value = null;
       isAuthenticated.value = false;
     }
 
+    // 刷新令牌
     async function refreshTokenFn() {
       try {
         const response = await userApi.refreshToken(refreshToken.value || '');
@@ -55,6 +70,7 @@ export const useUserStore = defineStore(
       refreshToken,
       userInfo,
       login,
+      signup,
       setUser,
       logout,
       refreshTokenFn,

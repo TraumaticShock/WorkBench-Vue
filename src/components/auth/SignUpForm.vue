@@ -22,7 +22,7 @@ const handleSubmit = async () => {
             return
         }
         await userStore.signup(form.value)
-        router.push('/login')
+        router.push('/auth/login')
     } catch (error: any) {
         console.error('注册失败:', error.message)
     }

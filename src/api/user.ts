@@ -3,10 +3,12 @@ import type { LoginForm, SignUpForm, User } from '@/types/user';
 import type { ApiResponse } from '@/types/ApiResponse';
 
 export const userApi = {
-  register(data: SignUpForm) {
+  signup(data: SignUpForm) {
     const { confirmPassword, ...userData } = data;
     return request.post<ApiResponse<User>>('/auth/register', {
-      userData,
+      username: userData.username,
+      email: userData.email,
+      password: userData.password,
     });
   },
 

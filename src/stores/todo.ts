@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { todoApi } from '@/api/todo';
-import type { TodoCountStats, TodoStatisticsParams } from '@/types/todo';
+import type { CreateTodoForm, TodoCountStats, TodoStatisticsParams } from '@/types/todo';
 
 export const useTodoStore = defineStore('todo', () => {
   const todayCount = ref<TodoCountStats | null>(null);
@@ -62,6 +62,12 @@ export const useTodoStore = defineStore('todo', () => {
     return data.data;
   }
 
+  // 创建待办
+  async function createTodo(todoData: CreateTodoForm) {
+    const { data } = await todoApi.createTodo(todoData);
+    return data.data;
+  }
+
   return {
     weekCompleteCount,
     todayCount,
@@ -72,5 +78,6 @@ export const useTodoStore = defineStore('todo', () => {
     getCompleteCount,
     getWeekCompleteCount,
     getTodoCategoryStats,
+    createTodo,
   };
 });

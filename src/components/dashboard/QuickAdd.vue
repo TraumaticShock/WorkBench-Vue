@@ -20,42 +20,37 @@
                         写笔记
                     </button>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button class="btn btn-accent flex-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        添加日程
-                    </button>
-                    <button class="btn btn-info flex-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        新建项目
-                    </button>
-                </div>
             </div>
         </div>
+
+        <!-- 待办编辑对话框 -->
+        <TodoEditDialog 
+            v-model="showTodoModal"
+            @submit="handleSubmit"
+        />
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { ElMessage } from 'element-plus'
+import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
+import { useTodoStore } from '@/stores/todo'
+import type { CreateTodoForm } from '@/types/todo'
 
-
+const todoStore = useTodoStore()
 const showTodoModal = ref(false)
 
-const categories = ref([
-    { id: '1', name: '工作', icon: '', count: 0 },
-    { id: '2', name: '生活', icon: '', count: 0 },
-    { id: '3', name: '学习', icon: '', count: 0 }
-])
-
-const handleSubmit = (todoData: any) => {
-    showTodoModal.value = false
+const handleSubmit = async (todoData: CreateTodoForm) => {
+    try {
+        await todoStore.createTodo(todoData)
+        showTodoModal.value = false
+        ElMessage.success('创建待办成功')
+        // 刷新待办列表
+        await todoStore.getTodayCount()
+    } catch (error: any) {
+        console.error('创建待办失败:', error)
+        ElMessage.error(error.message || '创建待办失败')
+    }
 }
 </script>

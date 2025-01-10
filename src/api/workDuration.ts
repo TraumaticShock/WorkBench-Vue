@@ -18,7 +18,7 @@ export const workDurationApi = {
 
   // 获取指定日期范围的工作时长
   getWorkDurationByDateRange(startDate: string, endDate: string) {
-    return request.get<ApiResponse<WorkDuration[]>>('/workDuration/range', {
+    return request.get<ApiResponse<WorkDuration[]>>('/workDuration', {
       params: {
         startDate,
         endDate,
