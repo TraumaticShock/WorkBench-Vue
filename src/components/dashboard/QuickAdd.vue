@@ -45,7 +45,6 @@ const handleSubmit = async (todoData: CreateTodoForm) => {
     try {
         await todoStore.createTodo(todoData)
         showTodoModal.value = false
-        ElMessage.success('创建待办成功')
         // 刷新待办列表
         await todoStore.getTodayCount()
     } catch (error: any) {

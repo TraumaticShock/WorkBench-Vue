@@ -29,9 +29,9 @@
                     </label>
                     <select class="select select-bordered" v-model="form.priority" required>
                         <option value="">请选择优先级</option>
-                        <option value="high">高</option>
-                        <option value="medium">中</option>
-                        <option value="low">低</option>
+                        <option value="high">紧急</option>
+                        <option value="medium">重要</option>
+                        <option value="low">一般</option>
                     </select>
                 </div>
 
@@ -39,7 +39,7 @@
                     <label class="label">
                         <span class="label-text">截止日期</span>
                     </label>
-                    <input type="date" v-model="form.dueDate" class="input input-bordered" required />
+                    <input type="date" v-model="form.dueDate" class="input input-bordered" />
                 </div>
 
                 <div class="form-control w-full">

@@ -36,3 +36,21 @@ export interface CreateTodoForm {
   dueDate: string;
   description?: string;
 }
+
+// 分页获取待办列表参数
+export interface TodoPageParams {
+  page: number;
+  size: number;
+  status?: string;
+  priority?: string;
+  category?: string;
+}
+
+// 添加分页数据的类型
+export interface TodoPage {
+  records: Todo[];
+  total: number;
+  size: number;
+  current: number;
+  pages: number;
+}
