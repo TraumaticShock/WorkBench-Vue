@@ -513,7 +513,6 @@ const saveChanges = async () => {
             description: selectedTodo.value.description,
             priority: selectedTodo.value.priority,
             category: selectedTodo.value.category,
-            status: selectedTodo.value.status,
             dueDate: selectedTodo.value.dueDate,
         });
 
