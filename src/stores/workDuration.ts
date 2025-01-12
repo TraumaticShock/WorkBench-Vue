@@ -6,7 +6,7 @@ import type { WorkDuration } from '@/types/workDuration';
 export const useWorkDurationStore = defineStore('workDuration', () => {
   const workDuration = ref<WorkDuration | null>(null);
   const timer = ref<number | null>(null);
-  const workDurationWeek = ref<WorkDuration[] | null>(null);
+  const workDurationWeek = ref<WorkDuration[]>([]);
 
   // 开始计时器
   const startTimer = () => {
@@ -24,7 +24,7 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
     if (timer.value) {
       clearInterval(timer.value);
       timer.value = null;
-  }     
+    }
   };
 
   // 格式化时间为时分秒
@@ -71,23 +71,73 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
 
   // 获取本周的工作时长
   const getWorkDurationWeek = async () => {
-    // 获取当前日期
     const today = new Date();
+    const currentDay = today.getDay();
 
-    // 计算本周的起始日期
-    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1)); // 周一
-    const endOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 7)); // 周日
+    // 创建一个映射对象来存储每个日期对应的索引
+    const dateIndexMap = new Map();
 
-    // 格式化日期为 'YYYY-MM-DD'
-    const startDate = startOfWeek.toISOString().split('T')[0];
-    const endDate = endOfWeek.toISOString().split('T')[0];
+    // 修改计算逻辑，确保周一是每周的第一天
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - currentDay + (currentDay === 0 ? -6 : 1));
 
-    // 请求本周工作时长
-    const response = await workDurationApi.getWorkDurationByDateRange(startDate, endDate);
+    // 创建一个包含本周所有日期的数组，并建立日期到索引的映射
+    const weekDays = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
+      const dateStr = date.toISOString().split('T')[0];
+      dateIndexMap.set(dateStr, i); // 存储日期和索引的对应关系
+      return dateStr;
+    });
 
-    // 取出结果的每一个对象中的duration 并转换为小时为单位 保留2位小数
-    const durations = response.data.data.map((item: { duration: any; }) => (item.duration / 3600).toFixed(2));
-    workDurationWeek.value = durations;
+    try {
+      const response = await workDurationApi.getWorkDurationByDateRange(
+        weekDays[0],
+        weekDays[6]
+      );
+
+      // 初始化 workDurationWeek 为默认值数组
+      workDurationWeek.value = weekDays.map((date) => ({
+        id: '',
+        userId: '',
+        date,
+        startTime: null,
+        endTime: null,
+        duration: 0,
+        createdAt: '',
+        updatedAt: '',
+      }));
+
+      // 如果有返回数据，则更新对应日期的数据
+      if (response.data.data) {
+        response.data.data.forEach((item) => {
+          const formattedDate = item.date;
+
+          // 使用 dateIndexMap 获取正确的索引
+          const index = dateIndexMap.get(formattedDate);
+
+          if (index !== undefined) {
+            workDurationWeek.value[index] = {
+              ...item,
+              date: formattedDate,
+              duration: Number((item.duration / 3600).toFixed(2)),
+            };
+          }
+        });
+      }
+    } catch (error) {
+      console.error('获取工作时长失败:', error);
+      workDurationWeek.value = weekDays.map((date) => ({
+        id: '',
+        userId: '',
+        date,
+        startTime: null,
+        endTime: null,
+        duration: 0,
+        createdAt: '',
+        updatedAt: '',
+      }));
+    }
   };
 
   return {

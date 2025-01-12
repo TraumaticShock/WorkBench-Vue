@@ -8,11 +8,11 @@
                     <div class="flex items-center gap-2 text-xs">
                         <div class="flex items-center gap-1">
                             <div class="badge badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                 @click="getTodoPage">全部 {{ todoStore.totalCount?.count || 0 }}</div>
+                                @click="getTodoPage">全部 {{ todoStore.totalCount?.count || 0 }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                 @click="getTodoPageUrgent">紧急 {{ todoStore.urgentCount?.count || 0 }}</div>
+                                @click="getTodoPageUrgent">紧急 {{ todoStore.urgentCount?.count || 0 }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
@@ -46,10 +46,8 @@
         </div>
 
         <!-- 修改内容区域 -->
-        <div class="overflow-y-auto px-6 flex-1 min-h-0" 
-             ref="scrollContainer"
-             id="scrollContainer"
-             @scroll="handleScroll">
+        <div class="overflow-y-auto px-6 flex-1 min-h-0" ref="scrollContainer" id="scrollContainer"
+            @scroll="handleScroll">
             <!-- 列表容器 -->
             <div class="py-2">
                 <!-- 加载状态和空数据提示 -->
@@ -59,7 +57,7 @@
                 <div v-else-if="!todoPage.records.length" class="text-center py-2 text-gray-500">
                     暂无待办事项
                 </div>
-                
+
                 <!-- 待办列表项 -->
                 <template v-else>
                     <div v-for="todo in todoPage.records" :key="todo.id"
@@ -68,7 +66,8 @@
                             @change="toggleTodo(todo.id.toString(), todo.status)" />
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span :class="{ 'line-through opacity-50': todo.status === 'completed' }">{{ todo.title }}</span>
+                                <span :class="{ 'line-through opacity-50': todo.status === 'completed' }">{{ todo.title
+                                    }}</span>
                                 <div v-if="todo.priority" :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
                                     {{ getPriorityText(todo.priority) }}
                                 </div>
@@ -76,14 +75,16 @@
                                     {{ todo.category }}
                                 </div>
                                 <div v-if="todo.dueDate" class="text-xs opacity-50">
-                                    {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric'}) }}
+                                    {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
+                                        year: 'numeric', month:
+                                            'long', day: 'numeric'
+                                    }) }}
                                     {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', { weekday: 'long' }) }}
                                 </div>
                             </div>
-                            <div v-if="todo.description" 
-                                 class="text-xs opacity-50 mt-1 line-clamp-2 cursor-pointer text-left"
-                                 style="max-height: 2.4em; min-height: 0;"
-                                 @click="openDescription(todo.description)">
+                            <div v-if="todo.description"
+                                class="text-xs opacity-50 mt-1 line-clamp-2 cursor-pointer text-left"
+                                style="max-height: 2.4em; min-height: 0;" @click="openDescription(todo.description)">
                                 {{ todo.description }}
                             </div>
                         </div>
@@ -95,7 +96,8 @@
                                         d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                             </button>
-                            <button class="btn btn-ghost btn-xs btn-square text-error" @click="handleDelete(todo.id.toString())">
+                            <button class="btn btn-ghost btn-xs btn-square text-error"
+                                @click="handleDelete(todo.id.toString())">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -105,7 +107,7 @@
                         </div>
                     </div>
                 </template>
-                
+
                 <!-- 底部加载提示 -->
                 <div v-if="loading && todoPage.records.length" class="text-center py-2">
                     <span class="loading loading-dots loading-md"></span>
@@ -126,12 +128,7 @@
     </dialog>
 
     <!-- 编辑对话框 -->
-    <TodoEditDialog 
-        v-model="showTodoModal"
-        :is-edit="true"
-        :initial-data="currentTodo"
-        @submit="handleSubmit"
-    />
+    <TodoEditDialog v-model="showTodoModal" :is-edit="true" :initial-data="currentTodo" @submit="handleSubmit" />
 
     <!-- 添加删除确认对话框 -->
     <dialog id="delete_confirm_modal" class="modal">
@@ -158,11 +155,11 @@ const todoStore = useTodoStore()
 const currentDescription = ref('')
 
 const todoPage = ref<TodoPage>({
-  records: [],
-  total: 0,
-  size: 10,
-  current: 1,
-  pages: 0
+    records: [],
+    total: 0,
+    size: 10,
+    current: 1,
+    pages: 0
 })
 
 const showTodoModal = ref(false)
@@ -182,7 +179,7 @@ const handleSubmit = async (todoData: CreateTodoForm) => {
         await todoStore.updateTodo(currentTodo.value.id!.toString(), todoData)
         showTodoModal.value = false
         // 刷新列表和计数
-        await fetchTodoList()
+        // await fetchTodoList()
         await todoStore.getTotalCount()
         await todoStore.getUrgentCount()
         await todoStore.getImportantCount()
@@ -203,7 +200,7 @@ const currentFilter = ref({
 // 修改获取待办列表方法，使用当前筛选条件
 const fetchTodoList = async (page = 1, append = false) => {
     if (loading.value || (!append && !hasMore.value)) return
-    
+
     try {
         loading.value = true
         const result = await todoStore.getTodoPage({
@@ -211,13 +208,13 @@ const fetchTodoList = async (page = 1, append = false) => {
             size: 10,
             ...currentFilter.value  // 使用当前筛选条件
         })
-        
+
         if (append) {
             todoPage.value.records = [...todoPage.value.records, ...result.records]
         } else {
             todoPage.value = result
         }
-        
+
         hasMore.value = result.records.length === 10
         currentPage.value = page
     } catch (error) {
@@ -317,7 +314,7 @@ const openDescription = (description: string) => {
 const handleScroll = async (e: Event) => {
     const target = e.target as HTMLElement
     const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight
-    
+
     // 当滚动到距离底部 50px 时加载更多
     if (scrollBottom < 50 && !loading.value && hasMore.value) {
         await fetchTodoList(currentPage.value + 1, true)
@@ -370,23 +367,31 @@ const confirmDelete = async () => {
 }
 
 // 修改切换待办状态的方法
-const toggleTodo = async (id: string, currentStatus: string) => {
+const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
     try {
-        // 根据当前状态切换
-        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
-        await todoStore.updateTodo(id, { status: newStatus } as any)    
-        await fetchTodoList()
-        await todoStore.getTotalCount()
-        await todoStore.getUrgentCount()
-        await todoStore.getImportantCount()
-        await todoStore.getNormalCount()
-        await todoStore.getCompleteCount()
-        await todoStore.getUncompleteCount()
-        await todoStore.getTodayCount()
+        const todoIndex = todoPage.value.records.findIndex(todo => todo.id.toString() === id);
+        if (todoIndex === -1) return;
+
+        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+        todoPage.value.records[todoIndex].status = newStatus;
+
+        await Promise.all([
+            todoStore.updateTodo(id, { status: newStatus } as any),
+            todoStore.getTotalCount(),
+            todoStore.getUrgentCount(),
+            todoStore.getImportantCount(),
+            todoStore.getNormalCount(),
+            todoStore.getCompleteCount(),
+            todoStore.getUncompleteCount(),
+            todoStore.getTodayCount()
+        ]).catch(error => {
+            todoPage.value.records[todoIndex].status = currentStatus;
+            throw error;
+        });
     } catch (error) {
-        console.error('更新待办状态失败:', error)
+        console.error('更新待办状态失败:', error);
     }
-}
+};
 
 onMounted(() => {
     fetchTodoList()

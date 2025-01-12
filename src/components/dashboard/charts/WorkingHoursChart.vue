@@ -29,6 +29,7 @@ const { workDurationWeek } = storeToRefs(workDurationStore);
 
 onMounted(async () => {
     await workDurationStore.getWorkDurationWeek();
+    console.log(workDurationWeek.value);
 });
 
 use([
@@ -83,7 +84,7 @@ const chartOption = computed(() => ({
         {
             name: '工作时长',
             type: 'bar',
-            data: workDurationWeek.value || [],  // 使用 store 中的数据
+            data: workDurationWeek.value.map((item: any) => item.duration) || [],  // 使用 store 中的数据
             itemStyle: {
                 color: {
                     type: 'linear',

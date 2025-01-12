@@ -14,6 +14,11 @@ const router = createRouter({
           name: 'Dashboard',
           component: () => import('@/views/dashboard/index.vue'),
         },
+        {
+          path: 'todo',
+          name: 'Todo',
+          component: () => import('@/views/todo/TodoPage.vue'),
+        },
       ],
     },
     {

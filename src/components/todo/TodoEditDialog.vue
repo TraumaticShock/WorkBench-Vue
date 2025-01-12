@@ -7,8 +7,8 @@
                     <label class="label">
                         <span class="label-text">标题</span>
                     </label>
-                    <input type="text" v-model="form.title" placeholder="请输入待办标题" 
-                           class="input input-bordered w-full" required />
+                    <input type="text" v-model="form.title" placeholder="请输入待办标题" class="input input-bordered w-full"
+                        required />
                 </div>
 
                 <div class="form-control w-full">
@@ -46,8 +46,8 @@
                     <label class="label">
                         <span class="label-text">备注</span>
                     </label>
-                    <textarea v-model="form.description" class="textarea textarea-bordered" 
-                              placeholder="请输入备注信息"></textarea>
+                    <textarea v-model="form.description" class="textarea textarea-bordered"
+                        placeholder="请输入备注信息"></textarea>
                 </div>
 
                 <div class="modal-action">
@@ -81,7 +81,7 @@ const form = ref<CreateTodoForm>({
     title: '',
     category: '',
     priority: 'medium',
-    dueDate: new Date().toISOString().split('T')[0],
+    dueDate: '',
     description: ''
 });
 
@@ -117,4 +117,4 @@ const categories = ref([
     { id: '2', name: '生活' },
     { id: '3', name: '学习' }
 ]);
-</script> 
+</script>
