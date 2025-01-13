@@ -24,10 +24,7 @@
         </div>
 
         <!-- 待办编辑对话框 -->
-        <TodoEditDialog 
-            v-model="showTodoModal"
-            @submit="handleSubmit"
-        />
+        <TodoEditDialog v-model="showTodoModal" @submit="handleSubmit" />
     </div>
 </template>
 
@@ -43,13 +40,13 @@ const showTodoModal = ref(false)
 
 const handleSubmit = async (todoData: CreateTodoForm) => {
     try {
-        await todoStore.createTodo(todoData)
-        showTodoModal.value = false
-        // 刷新待办列表
-        await todoStore.getTodayCount()
+        await todoStore.createTodo(todoData);
+        showTodoModal.value = false;
+        // 一次性刷新所有数据
+        await todoStore.refreshAllTodoData();
     } catch (error: any) {
-        console.error('创建待办失败:', error)
-        ElMessage.error(error.message || '创建待办失败')
+        console.error('创建待办失败:', error);
+        ElMessage.error(error.message || '创建待办失败');
     }
-}
+};
 </script>

@@ -1,7 +1,13 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { todoApi } from '@/api/todo';
-import type { CreateTodoForm, TodoCountStats, TodoPageParams, TodoStatisticsParams } from '@/types/todo';
+import type {
+  CreateTodoForm,
+  TodoCountStats,
+  TodoPageParams,
+  TodoStatisticsParams,
+  TodoPage,
+} from '@/types/todo';
 
 export const useTodoStore = defineStore('todo', () => {
   // 今日待办
@@ -23,6 +29,15 @@ export const useTodoStore = defineStore('todo', () => {
   // 一般待办
   const normalCount = ref<TodoCountStats | null>(null);
 
+  // 添加待办列表状态
+  const todoPage = ref<TodoPage>({
+    records: [],
+    total: 0,
+    size: 10,
+    current: 1,
+    pages: 0,
+  });
+
   // 通用的获取统计数据方法
   async function getTodoStats(params: TodoStatisticsParams) {
     const { data } = await todoApi.getTodoStatistics(params);
@@ -32,11 +47,12 @@ export const useTodoStore = defineStore('todo', () => {
   // 分页获取待办列表
   async function getTodoPage(params: TodoPageParams) {
     try {
-        const { data } = await todoApi.getTodoPage(params);
-        return data.data;  // 确保返回正确的数据结构
+      const { data } = await todoApi.getTodoPage(params);
+      todoPage.value = data.data;
+      return data.data;
     } catch (error) {
-        console.error('获取待办列表失败:', error);
-        return { records: [] };  // 返回空数组作为默认值
+      console.error('获取待办列表失败:', error);
+      return { records: [] };
     }
   }
 
@@ -131,23 +147,59 @@ export const useTodoStore = defineStore('todo', () => {
     return data.data;
   }
 
-  // 创建待办
-  async function createTodo(todoData: CreateTodoForm) {
+  // 创建待办时自动更新
+  const createTodo = async (todoData: CreateTodoForm) => {
     const { data } = await todoApi.createTodo(todoData);
+    await refreshAllTodoData(); // 创建后自动刷新
     return data.data;
-  }
+  };
 
-  // 更新待办
-  async function updateTodo(id: string, todoData: CreateTodoForm) {
-    const { data } = await todoApi.updateTodo(id, todoData);
+  // 更新待办时自动更新
+  const updateTodo = async (id: string, todoData: Partial<CreateTodoForm>) => {
+    const { data } = await todoApi.updateTodo(id, todoData as any);
+    // 更新本地状态
+    const index = todoPage.value.records.findIndex(
+      (todo) => todo.id.toString() === id
+    );
+    if (index !== -1) {
+      todoPage.value.records[index] = {
+        ...todoPage.value.records[index],
+        ...todoData,
+      };
+    }
+    // 刷新所有统计数据
+    await refreshAllTodoData();
     return data.data;
-  }
+  };
 
-  // 删除待办
-  async function deleteTodo(id: string) {
+  // 删除待办时自动更新
+  const deleteTodo = async (id: string) => {
     const { data } = await todoApi.deleteTodo(id);
+    // 更新本地状态
+    const index = todoPage.value.records.findIndex(
+      (todo) => todo.id.toString() === id
+    );
+    if (index !== -1) {
+      todoPage.value.records.splice(index, 1);
+    }
+    // 刷新所有统计数据
+    await refreshAllTodoData();
     return data.data;
-  }
+  };
+
+  // 添加一个刷新所有数据的方法
+  const refreshAllTodoData = async () => {
+    await Promise.all([
+      getTodayCount(),
+      getYesterdayCount(),
+      getCompleteCount(),
+      getUrgentCount(),
+      getImportantCount(),
+      getNormalCount(),
+      getUncompleteCount(),
+      getTodoPage({ page: 1, size: 10 }),
+    ]);
+  };
 
   return {
     weekCompleteCount,
@@ -159,6 +211,7 @@ export const useTodoStore = defineStore('todo', () => {
     urgentCount,
     importantCount,
     normalCount,
+    todoPage,
     getTodayCount,
     getTodoPage,
     getYesterdayCount,
@@ -173,5 +226,6 @@ export const useTodoStore = defineStore('todo', () => {
     createTodo,
     updateTodo,
     deleteTodo,
+    refreshAllTodoData,
   };
 });

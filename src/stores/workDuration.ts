@@ -45,9 +45,10 @@ export const useWorkDurationStore = defineStore('workDuration', () => {
     if (response.data.data) {
       workDuration.value = {
         ...response.data.data,
-        duration: response.data.data[0].duration, // 直接使用后端返回的时长
+        duration: response.data.data[0].duration,
       };
 
+      // 如果没有结束时间，自动开始计时
       if (!workDuration.value.endTime) {
         startTimer();
       }

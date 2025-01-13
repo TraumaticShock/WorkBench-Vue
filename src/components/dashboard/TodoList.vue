@@ -145,24 +145,19 @@
 
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
+import type { CreateTodoForm, Todo } from '@/types/todo'
 import { ref, onMounted } from 'vue'
-import type { TodoPage } from '@/types/todo'
-import type { CreateTodoForm } from '@/types/todo'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
-import type { Todo } from '@/types/todo'
+import { storeToRefs } from 'pinia'
 
 const todoStore = useTodoStore()
+const { todoPage } = storeToRefs(todoStore)
 const currentDescription = ref('')
-
-const todoPage = ref<TodoPage>({
-    records: [],
-    total: 0,
-    size: 10,
-    current: 1,
-    pages: 0
-})
-
 const showTodoModal = ref(false)
+const loading = ref(false)
+const currentPage = ref(1)
+const hasMore = ref(true)
+
 
 // 添加当前编辑的待办数据
 const currentTodo = ref<Partial<Todo>>({})
@@ -176,20 +171,12 @@ const handleEdit = (todo: Todo) => {
 // 处理编辑提交
 const handleSubmit = async (todoData: CreateTodoForm) => {
     try {
-        await todoStore.updateTodo(currentTodo.value.id!.toString(), todoData)
-        showTodoModal.value = false
-        // 刷新列表和计数
-        // await fetchTodoList()
-        await todoStore.getTotalCount()
-        await todoStore.getUrgentCount()
-        await todoStore.getImportantCount()
-        await todoStore.getNormalCount()
-        await todoStore.getCompleteCount()
-        await todoStore.getUncompleteCount()
+        await todoStore.updateTodo(currentTodo.value.id!.toString(), todoData);
+        showTodoModal.value = false;
     } catch (error: any) {
-        console.error('更新待办失败:', error)
+        console.error('更新待办失败:', error);
     }
-}
+};
 
 // 添加当前筛选条件的状态
 const currentFilter = ref({
@@ -203,19 +190,13 @@ const fetchTodoList = async (page = 1, append = false) => {
 
     try {
         loading.value = true
-        const result = await todoStore.getTodoPage({
+        await todoStore.getTodoPage({
             page,
             size: 10,
-            ...currentFilter.value  // 使用当前筛选条件
+            ...currentFilter.value
         })
 
-        if (append) {
-            todoPage.value.records = [...todoPage.value.records, ...result.records]
-        } else {
-            todoPage.value = result
-        }
-
-        hasMore.value = result.records.length === 10
+        hasMore.value = todoPage.value.records.length === 10
         currentPage.value = page
     } catch (error) {
         console.error('获取待办列表失败:', error)
@@ -321,10 +302,6 @@ const handleScroll = async (e: Event) => {
     }
 }
 
-const loading = ref(false)
-const currentPage = ref(1)
-const hasMore = ref(true)
-
 // 添加关闭 modal 的方法
 const closeModal = () => {
     const modal = document.getElementById('description_modal') as HTMLDialogElement
@@ -350,48 +327,23 @@ const closeDeleteModal = () => {
 // 确认删除
 const confirmDelete = async () => {
     try {
-        await todoStore.deleteTodo(todoToDelete.value)
-        closeDeleteModal()
-        // 刷新列表和计数
-        await fetchTodoList()
-        await todoStore.getTotalCount()
-        await todoStore.getUrgentCount()
-        await todoStore.getImportantCount()
-        await todoStore.getNormalCount()
-        await todoStore.getCompleteCount()
-        await todoStore.getUncompleteCount()
-        await todoStore.getTodayCount()
+        await todoStore.deleteTodo(todoToDelete.value);
+        closeDeleteModal();
     } catch (error: any) {
-        console.error('删除待办失败:', error)
+        console.error('删除待办失败:', error);
     }
-}
+};
 
 // 修改切换待办状态的方法
 const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
     try {
-        const todoIndex = todoPage.value.records.findIndex(todo => todo.id.toString() === id);
-        if (todoIndex === -1) return;
-
         const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-        todoPage.value.records[todoIndex].status = newStatus;
-
-        await Promise.all([
-            todoStore.updateTodo(id, { status: newStatus } as any),
-            todoStore.getTotalCount(),
-            todoStore.getUrgentCount(),
-            todoStore.getImportantCount(),
-            todoStore.getNormalCount(),
-            todoStore.getCompleteCount(),
-            todoStore.getUncompleteCount(),
-            todoStore.getTodayCount()
-        ]).catch(error => {
-            todoPage.value.records[todoIndex].status = currentStatus;
-            throw error;
-        });
+        await todoStore.updateTodo(id, { status: newStatus } as any);
     } catch (error) {
         console.error('更新待办状态失败:', error);
     }
 };
+
 
 onMounted(() => {
     fetchTodoList()

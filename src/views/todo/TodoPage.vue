@@ -38,7 +38,7 @@
                             </div>
                         </div>
                     </div>
-                    <button class="btn btn-primary btn-sm" @click="$emit('add')">
+                    <button class="btn btn-primary btn-sm" @click="showTodoModal = true">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -211,8 +211,8 @@
         </div>
     </div>
 
-    <!-- 编辑对话框 -->
-    <!-- <TodoEditDialog v-model="showTodoModal" :is-edit="true" :initial-data="currentTodo" @submit="handleSubmit" /> -->
+    <!-- 待办编辑对话框 -->
+    <TodoEditDialog v-model="showTodoModal" @submit="handleSubmit" />
 
     <!-- 添加删除确认对话框 -->
     <dialog id="delete_confirm_modal" class="modal">
@@ -229,51 +229,26 @@
 
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
+import type { CreateTodoForm, Todo } from '@/types/todo'
 import { ref, onMounted, computed } from 'vue'
-import type { TodoPage } from '@/types/todo'
-import type { CreateTodoForm } from '@/types/todo'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
-import type { Todo } from '@/types/todo'
+import { storeToRefs } from 'pinia'
 
 const todoStore = useTodoStore()
-const currentDescription = ref('')
-
-const todoPage = ref<TodoPage>({
-    records: [],
-    total: 0,
-    size: 10,
-    current: 1,
-    pages: 0
-})
-
+const { todoPage } = storeToRefs(todoStore)
 const showTodoModal = ref(false)
 
-// 添加当前编辑的待办数据
-const currentTodo = ref<Partial<Todo>>({})
-
-// 处理编辑按钮点击
-const handleEdit = (todo: Todo) => {
-    currentTodo.value = { ...todo }
-    showTodoModal.value = true
-}
-
-// 处理编辑提交
+// 处理创建待办
 const handleSubmit = async (todoData: CreateTodoForm) => {
     try {
-        await todoStore.updateTodo(currentTodo.value.id!.toString(), todoData)
-        showTodoModal.value = false
-        // 刷新列表和计数
-        // await fetchTodoList()
-        await todoStore.getTotalCount()
-        await todoStore.getUrgentCount()
-        await todoStore.getImportantCount()
-        await todoStore.getNormalCount()
-        await todoStore.getCompleteCount()
-        await todoStore.getUncompleteCount()
+        await todoStore.createTodo(todoData);
+        showTodoModal.value = false;
+        // 一次性刷新所有数据
+        await todoStore.refreshAllTodoData();
     } catch (error: any) {
-        console.error('更新待办失败:', error)
+        console.error('创建待办失败:', error);
     }
-}
+};
 
 // 添加当前筛选条件的状态
 const currentFilter = ref({
@@ -427,44 +402,25 @@ const closeDeleteModal = () => {
 // 确认删除
 const confirmDelete = async () => {
     try {
-        await todoStore.deleteTodo(todoToDelete.value)
-        closeDeleteModal()
-        // 刷新列表和计数
-        await fetchTodoList()
-        await todoStore.getTotalCount()
-        await todoStore.getUrgentCount()
-        await todoStore.getImportantCount()
-        await todoStore.getNormalCount()
-        await todoStore.getCompleteCount()
-        await todoStore.getUncompleteCount()
-        await todoStore.getTodayCount()
+        await todoStore.deleteTodo(todoToDelete.value);
+        closeDeleteModal();
+
+        // 如果当前页没有数据了且不是第一页，则加载上一页
+        if (todoPage.value.records.length === 0 && currentPage.value > 1) {
+            currentPage.value--;
+            hasMore.value = true;
+            await fetchTodoList(currentPage.value, false);
+        }
     } catch (error: any) {
-        console.error('删除待办失败:', error)
+        console.error('删除待办失败:', error);
     }
-}
+};
 
 // 修改切换待办状态的方法
 const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
     try {
-        const todoIndex = todoPage.value.records.findIndex(todo => todo.id.toString() === id);
-        if (todoIndex === -1) return;
-
         const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-        todoPage.value.records[todoIndex].status = newStatus;
-
-        await Promise.all([
-            todoStore.updateTodo(id, { status: newStatus } as any),
-            todoStore.getTotalCount(),
-            todoStore.getUrgentCount(),
-            todoStore.getImportantCount(),
-            todoStore.getNormalCount(),
-            todoStore.getCompleteCount(),
-            todoStore.getUncompleteCount(),
-            todoStore.getTodayCount()
-        ]).catch(error => {
-            todoPage.value.records[todoIndex].status = currentStatus;
-            throw error;
-        });
+        await todoStore.updateTodo(id, { status: newStatus } as any);
     } catch (error) {
         console.error('更新待办状态失败:', error);
     }
@@ -523,16 +479,6 @@ const saveChanges = async () => {
         if (index !== -1) {
             todoPage.value.records[index] = { ...selectedTodo.value };
         }
-
-        // 刷新计数
-        await Promise.all([
-            todoStore.getTotalCount(),
-            todoStore.getUrgentCount(),
-            todoStore.getImportantCount(),
-            todoStore.getNormalCount(),
-            todoStore.getCompleteCount(),
-            todoStore.getUncompleteCount(),
-        ]);
     } catch (error) {
         console.error('更新待办失败:', error);
     }
@@ -540,12 +486,7 @@ const saveChanges = async () => {
 
 onMounted(() => {
     fetchTodoList()
-    todoStore.getTotalCount()
-    todoStore.getUrgentCount()
-    todoStore.getImportantCount()
-    todoStore.getNormalCount()
-    todoStore.getCompleteCount()
-    todoStore.getUncompleteCount()
+    todoStore.refreshAllTodoData()
 })
 </script>
 

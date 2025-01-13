@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted } from 'vue'
 import { useTodoStore } from '@/stores/todo'
 import { storeToRefs } from 'pinia'
 import { useWorkDurationStore } from '@/stores/workDuration'
@@ -14,20 +14,6 @@ onMounted(async () => {
     await todoStore.getTodayCount();
     await todoStore.getYesterdayCount();
     await todoStore.getCompleteCount();
-    await workDurationStore.getWorkDurationToday();
-});
-
-onUnmounted(() => {
-    workDurationStore.stopTimer();
-});
-
-// 监听页面关闭或者刷新
-window.addEventListener('beforeunload', (event) => {
-    // 在页面刷新或关闭前发送请求
-    workDurationStore.updateWorkDuration();
-    event.preventDefault();
-    event.returnValue = '';
-    return '123';
 });
 </script>
 
