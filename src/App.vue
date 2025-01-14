@@ -7,12 +7,15 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { useWorkDurationStore } from '@/stores/workDuration';
+import { useTodoStore } from '@/stores/todo';
 
 const workDurationStore = useWorkDurationStore();
+const todoStore = useTodoStore();
 
 onMounted(async () => {
   // 初始化获取今天的工作时长
   await workDurationStore.getWorkDurationToday();
+  await todoStore.refreshAllTodoData();
 });
 
 // 监听页面关闭或者刷新

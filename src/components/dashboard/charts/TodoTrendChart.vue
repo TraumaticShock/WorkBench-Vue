@@ -8,7 +8,7 @@ import {
     GridComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
-import { onMounted, ref, computed } from 'vue';
+import { ref, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useTodoStore } from '@/stores/todo'
 
@@ -21,9 +21,8 @@ use([
 ]);
 
 const todoStore = useTodoStore();
-const { weekCompleteCount } = storeToRefs(todoStore);
+const { stats } = storeToRefs(todoStore);
 const isLoading = ref(true);
-const chartData = ref([]);
 
 const lineChartOption = computed(() => ({
     tooltip: {
@@ -54,7 +53,7 @@ const lineChartOption = computed(() => ({
             name: '已完成',
             type: 'line',
             smooth: true,
-            data: chartData.value,
+            data: stats.weekComplete?.count || [],
             itemStyle: {
                 color: '#36d399'
             },
@@ -77,15 +76,6 @@ const lineChartOption = computed(() => ({
         }
     ]
 }));
-
-onMounted(async () => {
-    try {
-        await todoStore.getWeekCompleteCount();
-        chartData.value = weekCompleteCount.value?.count || [];
-    } finally {
-        isLoading.value = false;
-    }
-});
 </script>
 
 <template>

@@ -51,16 +51,16 @@
             <!-- 列表容器 -->
             <div class="py-2">
                 <!-- 加载状态和空数据提示 -->
-                <div v-if="loading && !todoPage.records.length" class="text-center py-2">
+                <div v-if="loading && !stats.records.length" class="text-center py-2">
                     <span class="loading loading-dots loading-md"></span>
                 </div>
-                <div v-else-if="!todoPage.records.length" class="text-center py-2 text-gray-500">
+                <div v-else-if="!stats.records.length" class="text-center py-2 text-gray-500">
                     暂无待办事项
                 </div>
 
                 <!-- 待办列表项 -->
                 <template v-else>
-                    <div v-for="todo in todoPage.records" :key="todo.id"
+                    <div v-for="todo in stats.records" :key="todo.id"
                         class="mb-2 last:mb-0 flex items-center gap-3 p-3 bg-base-100 rounded-lg hover:bg-base-300 transition-colors">
                         <input type="checkbox" :checked="todo.status === 'completed'" class="checkbox checkbox-sm"
                             @change="toggleTodo(todo.id.toString(), todo.status)" />
@@ -109,7 +109,7 @@
                 </template>
 
                 <!-- 底部加载提示 -->
-                <div v-if="loading && todoPage.records.length" class="text-center py-2">
+                <div v-if="loading && stats.records.length" class="text-center py-2">
                     <span class="loading loading-dots loading-md"></span>
                 </div>
             </div>
@@ -146,12 +146,12 @@
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
 import type { CreateTodoForm, Todo } from '@/types/todo'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
 import { storeToRefs } from 'pinia'
 
 const todoStore = useTodoStore()
-const { todoPage } = storeToRefs(todoStore)
+const { stats } = storeToRefs(todoStore)
 const currentDescription = ref('')
 const showTodoModal = ref(false)
 const loading = ref(false)
@@ -344,16 +344,6 @@ const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') =>
     }
 };
 
-
-onMounted(() => {
-    fetchTodoList()
-    todoStore.getTotalCount()
-    todoStore.getUrgentCount()
-    todoStore.getImportantCount()
-    todoStore.getNormalCount()
-    todoStore.getCompleteCount()
-    todoStore.getUncompleteCount()
-})
 </script>
 
 <style scoped>

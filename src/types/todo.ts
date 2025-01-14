@@ -1,3 +1,4 @@
+// 待办事项实体类型
 export interface Todo {
   id: number;
   title: string; // 标题
@@ -10,7 +11,7 @@ export interface Todo {
   updatedAt: string; // 更新时间
 }
 
-// 待办事项统计参数
+// 待办事项统计参数类型
 export interface TodoStatisticsParams {
   unit?: 'day' | 'week' | 'category';
   date?: string;
@@ -19,7 +20,7 @@ export interface TodoStatisticsParams {
   category?: string;
 }
 
-// 待办事项数量统计
+// 待办事项数量统计类型
 export interface TodoCountStats {
   count: number;
   date: string;
@@ -37,7 +38,7 @@ export interface CreateTodoForm {
   description?: string;
 }
 
-// 分页获取待办列表参数
+// 分页获取待办列表参数类型
 export interface TodoPageParams {
   page: number;
   size: number;
@@ -46,7 +47,7 @@ export interface TodoPageParams {
   category?: string;
 }
 
-// 添加分页数据的类型
+// 添加分页数据类型
 export interface TodoPage {
   records: Todo[];
   total: number;

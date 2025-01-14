@@ -9,11 +9,12 @@ import {
     GridComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
-import { onMounted, ref, computed } from 'vue';
+import { computed } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useTodoStore } from '@/stores/todo';
 
 const todoStore = useTodoStore();
-const todoCategoryStats = ref({ categories: [], counts: [] });
+const { stats } = storeToRefs(todoStore);
 
 // 使用 computed 处理图表配置
 const taskPieChartOption = computed(() => ({
@@ -38,7 +39,7 @@ const taskPieChartOption = computed(() => ({
     },
     yAxis: {
         type: 'category',
-        data: todoCategoryStats.value.categories,
+        data: stats.category?.categories || [],
         axisLabel: {
             fontSize: 10
         }
@@ -47,7 +48,7 @@ const taskPieChartOption = computed(() => ({
         {
             name: '待办数量',
             type: 'bar',
-            data: todoCategoryStats.value.counts,
+            data: stats.category?.counts || [],
             itemStyle: {
                 color: {
                     type: 'linear',
@@ -82,21 +83,6 @@ use([
     LegendComponent,
     GridComponent
 ]);
-
-onMounted(async () => {
-    const result = await todoStore.getTodoCategoryStats();
-
-    // 转换为数组并排序
-    const sortedEntries = Object.entries(result.categoryCount)
-        .sort(([, a], [, b]) => b - a)  // 按数量降序排序
-        .slice(0, 5);  // 只取前5个
-
-    // 分离类别和数量
-    todoCategoryStats.value = {
-        categories: sortedEntries.map(([category]) => category),
-        counts: sortedEntries.map(([, count]) => count)
-    };
-});
 </script>
 
 <template>

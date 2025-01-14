@@ -1,35 +1,33 @@
 import { defineStore } from 'pinia';
-import { ref, watch } from 'vue';
+import { ref } from 'vue';
 import { todoApi } from '@/api/todo';
+import { getTodayString } from '@/utils';
 import type {
   CreateTodoForm,
   TodoCountStats,
   TodoPageParams,
   TodoStatisticsParams,
   TodoPage,
+  Todo,
 } from '@/types/todo';
 
 export const useTodoStore = defineStore('todo', () => {
-  // 今日待办
-  const todayCount = ref<TodoCountStats | null>(null);
-  // 昨日待办
-  const yesterdayCount = ref<TodoCountStats | null>(null);
-  // 本周已完成待办
-  const weekCompleteCount = ref<TodoCountStats | null>(null);
-  // 全部待办
-  const totalCount = ref<TodoCountStats | null>(null);
-  // 未完成待办
-  const uncompleteCount = ref<TodoCountStats | null>(null);
-  // 已完成待办
-  const completeCount = ref<TodoCountStats | null>(null);
-  // 紧急待办
-  const urgentCount = ref<TodoCountStats | null>(null);
-  // 重要待办
-  const importantCount = ref<TodoCountStats | null>(null);
-  // 一般待办
-  const normalCount = ref<TodoCountStats | null>(null);
+  // 统一管理所有计数状态
+  const stats = ref({
+    today: null as TodoCountStats | null,
+    yesterday: null as TodoCountStats | null,
+    weekComplete: null as TodoCountStats | null,
+    total: null as TodoCountStats | null,
+    uncomplete: null as TodoCountStats | null,
+    complete: null as TodoCountStats | null,
+    urgent: null as TodoCountStats | null,
+    important: null as TodoCountStats | null,
+    normal: null as TodoCountStats | null,
+    category: null as TodoCountStats | null,
+    records: [] as Todo[],
+  });
 
-  // 添加待办列表状态
+  // 待办列表状态
   const todoPage = ref<TodoPage>({
     records: [],
     total: 0,
@@ -38,194 +36,142 @@ export const useTodoStore = defineStore('todo', () => {
     pages: 0,
   });
 
-  // 通用的获取统计数据方法
-  async function getTodoStats(params: TodoStatisticsParams) {
+  // 分类统计状态
+  const todoCategoryStats = ref({
+    categories: [] as string[],
+    counts: [] as number[],
+  });
+
+  // 获取统计数据的通用方法
+  const fetchStats = async (params: TodoStatisticsParams) => {
     const { data } = await todoApi.getTodoStatistics(params);
-    return data.data;
-  }
-
-  // 分页获取待办列表
-  async function getTodoPage(params: TodoPageParams) {
-    try {
-      const { data } = await todoApi.getTodoPage(params);
-      todoPage.value = data.data;
-      return data.data;
-    } catch (error) {
-      console.error('获取待办列表失败:', error);
-      return { records: [] };
-    }
-  }
-
-  // 获取今日待办数量
-  async function getTodayCount() {
-    todayCount.value = await getTodoStats({
-      unit: 'day',
-      date: new Date().toISOString().split('T')[0],
-      status: 'pending',
-    });
-  }
-
-  // 获取昨日待办数量
-  async function getYesterdayCount() {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    yesterdayCount.value = await getTodoStats({
-      unit: 'day',
-      date: yesterday.toISOString().split('T')[0],
-      status: 'pending',
-    });
-  }
-
-  // 获取全部的待办数量
-  async function getTotalCount() {
-    totalCount.value = await getTodoStats({
-      unit: 'day',
-      date: new Date().toISOString().split('T')[0],
-    });
-  }
-
-  // 获取已完成待办数量
-  async function getCompleteCount() {
-    completeCount.value = await getTodoStats({
-      unit: 'day',
-      date: new Date().toISOString().split('T')[0],
-      status: 'completed',
-    });
-  }
-
-  // 获取未完成待办数量
-  async function getUncompleteCount() {
-    uncompleteCount.value = await getTodoStats({
-      unit: 'day',
-      date: new Date().toISOString().split('T')[0],
-      status: 'pending',
-    });
-  }
-
-  // 获取紧急待办数量
-  async function getUrgentCount() {
-    urgentCount.value = await getTodoStats({
-      unit: 'day',
-      date: new Date().toISOString().split('T')[0],
-      priority: 'high',
-    });
-  }
-
-  // 获取重要待办数量
-  async function getImportantCount() {
-    importantCount.value = await getTodoStats({
-      unit: 'day',
-      date: new Date().toISOString().split('T')[0],
-      priority: 'medium',
-    });
-  }
-
-  // 获取一般待办数量
-  async function getNormalCount() {
-    normalCount.value = await getTodoStats({
-      unit: 'day',
-      date: new Date().toISOString().split('T')[0],
-      priority: 'low',
-    });
-  }
-
-  // 获取本周已完成代办数量
-  async function getWeekCompleteCount() {
-    weekCompleteCount.value = await getTodoStats({
-      unit: 'week',
-      status: 'completed',
-    });
-  }
-
-  // 获取待办分类统计
-  async function getTodoCategoryStats() {
-    const { data } = await todoApi.getTodoStatistics({
-      unit: 'category',
-      status: 'pending',
-    });
-    return data.data;
-  }
-
-  // 创建待办时自动更新
-  const createTodo = async (todoData: CreateTodoForm) => {
-    const { data } = await todoApi.createTodo(todoData);
-    await refreshAllTodoData(); // 创建后自动刷新
     return data.data;
   };
 
-  // 更新待办时自动更新
-  const updateTodo = async (id: string, todoData: Partial<CreateTodoForm>) => {
-    const { data } = await todoApi.updateTodo(id, todoData as any);
-    // 更新本地状态
+  // 统一的统计数据获取方法
+  const statsActions = {
+    today: () =>
+      fetchStats({ unit: 'day', date: getTodayString(), status: 'pending' }),
+    yesterday: () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      return fetchStats({
+        unit: 'day',
+        date: yesterday.toISOString().split('T')[0],
+        status: 'pending',
+      });
+    },
+    total: () => fetchStats({ unit: 'day', date: getTodayString() }),
+    complete: () =>
+      fetchStats({ unit: 'day', date: getTodayString(), status: 'completed' }),
+    uncomplete: () =>
+      fetchStats({ unit: 'day', date: getTodayString(), status: 'pending' }),
+    urgent: () =>
+      fetchStats({ unit: 'day', date: getTodayString(), priority: 'high' }),
+    important: () =>
+      fetchStats({ unit: 'day', date: getTodayString(), priority: 'medium' }),
+    normal: () =>
+      fetchStats({ unit: 'day', date: getTodayString(), priority: 'low' }),
+    weekComplete: () => fetchStats({ unit: 'week', status: 'completed' }),
+    category: async () => {
+      try {
+        const { data } = await todoApi.getTodoStatistics({
+          unit: 'category',
+          status: 'pending',
+        });
+
+        if (!data.data.categoryCount) return null;
+
+        // 转换为数组并排序
+        const sortedEntries = Object.entries(data.data.categoryCount)
+          .sort(([, a], [, b]) => b - a) // 按数量降序排序
+          .slice(0, 5); // 只取前5个
+
+        // 更新分类统计状态
+        todoCategoryStats.value = {
+          categories: sortedEntries.map(([category]) => category),
+          counts: sortedEntries.map(([, count]) => count),
+        };
+
+        return data.data;
+      } catch (error) {
+        console.error('获取分类统计失败:', error);
+        return null;
+      }
+    },
+  };
+
+  // 更新本地待办状态
+  const updateLocalTodo = (id: string, todoData?: Partial<CreateTodoForm>) => {
     const index = todoPage.value.records.findIndex(
       (todo) => todo.id.toString() === id
     );
-    if (index !== -1) {
+    if (index === -1) return;
+
+    if (todoData) {
       todoPage.value.records[index] = {
         ...todoPage.value.records[index],
         ...todoData,
       };
-    }
-    // 刷新所有统计数据
-    await refreshAllTodoData();
-    return data.data;
-  };
-
-  // 删除待办时自动更新
-  const deleteTodo = async (id: string) => {
-    const { data } = await todoApi.deleteTodo(id);
-    // 更新本地状态
-    const index = todoPage.value.records.findIndex(
-      (todo) => todo.id.toString() === id
-    );
-    if (index !== -1) {
+    } else {
       todoPage.value.records.splice(index, 1);
     }
-    // 刷新所有统计数据
-    await refreshAllTodoData();
-    return data.data;
   };
 
-  // 添加一个刷新所有数据的方法
+  // CRUD 操作
+  const actions = {
+    // 获取待办列表
+    async getTodoPage(params: TodoPageParams) {
+      try {
+        const { data } = await todoApi.getTodoPage(params);
+        todoPage.value = data.data;
+        return data.data;
+      } catch (error) {
+        console.error('获取待办列表失败:', error);
+        return { records: [] };
+      }
+    },
+
+    // 创建待办
+    async createTodo(todoData: CreateTodoForm) {
+      const { data } = await todoApi.createTodo(todoData);
+      await refreshAllTodoData();
+      return data.data;
+    },
+
+    // 更新待办
+    async updateTodo(id: string, todoData: CreateTodoForm) {
+      const { data } = await todoApi.updateTodo(id, todoData);
+      updateLocalTodo(id, todoData);
+      await refreshAllTodoData();
+      return data.data;
+    },
+
+    // 删除待办
+    async deleteTodo(id: string) {
+      const { data } = await todoApi.deleteTodo(id);
+      updateLocalTodo(id);
+      await refreshAllTodoData();
+      return data.data;
+    },
+  };
+
+  // 刷新所有数据
   const refreshAllTodoData = async () => {
+    const promises = Object.entries(statsActions).map(async ([key, fetch]) => {
+      stats.value[key] = await fetch();
+    });
     await Promise.all([
-      getTodayCount(),
-      getYesterdayCount(),
-      getCompleteCount(),
-      getUrgentCount(),
-      getImportantCount(),
-      getNormalCount(),
-      getUncompleteCount(),
-      getTodoPage({ page: 1, size: 10 }),
+      ...promises,
+      actions.getTodoPage({ page: 1, size: 10 }),
     ]);
   };
 
   return {
-    weekCompleteCount,
-    todayCount,
-    yesterdayCount,
-    completeCount,
-    totalCount,
-    uncompleteCount,
-    urgentCount,
-    importantCount,
-    normalCount,
+    stats,
     todoPage,
-    getTodayCount,
-    getTodoPage,
-    getYesterdayCount,
-    getCompleteCount,
-    getWeekCompleteCount,
-    getTotalCount,
-    getUrgentCount,
-    getImportantCount,
-    getNormalCount,
-    getUncompleteCount,
-    getTodoCategoryStats,
-    createTodo,
-    updateTodo,
-    deleteTodo,
+    todoCategoryStats,
+    ...actions,
     refreshAllTodoData,
   };
 });

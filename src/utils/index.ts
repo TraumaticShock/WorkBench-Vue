@@ -22,3 +22,6 @@ export const storage = {
     localStorage.removeItem(key);
   },
 };
+
+// 获取当前日期
+export const getTodayString = () => new Date().toISOString().split('T')[0];
