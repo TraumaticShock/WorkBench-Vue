@@ -12,8 +12,8 @@ const request = axios.create({
 
 const handleRequest = (config: any) => {
   const userStore = useUserStore();
-  if (userStore.token) {
-    config.headers.Authorization = `Bearer ${userStore.token}`;
+  if (userStore.state.currentUser?.token) {
+    config.headers.Authorization = `Bearer ${userStore.state.currentUser.token}`;
   }
   return config;
 };

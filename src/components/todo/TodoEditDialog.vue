@@ -64,20 +64,20 @@
 
 <script setup lang="ts">
 import { ref, defineProps, defineEmits, watch } from 'vue';
-import type { CreateTodoForm } from '@/types/todo';
+import type { CreateTodoFormParams } from '@/types/todo';
 
 const props = defineProps<{
     modelValue: boolean;
     isEdit?: boolean;
-    initialData?: Partial<CreateTodoForm>;
+    initialData?: Partial<CreateTodoFormParams>;
 }>();
 
 const emit = defineEmits<{
     'update:modelValue': [value: boolean];
-    'submit': [data: CreateTodoForm];
+    'submit': [data: CreateTodoFormParams];
 }>();
 
-const form = ref<CreateTodoForm>({
+const form = ref<CreateTodoFormParams>({
     title: '',
     category: '',
     priority: 'medium',

@@ -13,24 +13,15 @@ export interface Todo {
 
 // 待办事项统计参数类型
 export interface TodoStatisticsParams {
-  unit?: 'day' | 'week' | 'category';
-  date?: string;
-  status?: string;
-  priority?: string;
-  category?: string;
-}
-
-// 待办事项数量统计类型
-export interface TodoCountStats {
-  count: number;
-  date: string;
-  status: string | null;
-  priority: string | null;
-  category: string | null;
+  unit: 'day' | 'week' | 'category';
+  date?: string | null;
+  status?: string | null;
+  priority?: string | null;
+  category?: string | null;
 }
 
 // 创建待办表单数据类型
-export interface CreateTodoForm {
+export interface CreateTodoFormParams {
   title: string;
   category: string;
   priority: 'high' | 'medium' | 'low';

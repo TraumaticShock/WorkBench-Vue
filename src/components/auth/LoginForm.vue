@@ -2,13 +2,12 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import type { LoginForm } from '@/types/user'
-import { el } from 'element-plus/es/locale'
+import type { LoginFormParams } from '@/types/user'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-const form = ref<LoginForm>(
+const form = ref<LoginFormParams>(
     {
         username: '',
         password: '',
@@ -18,8 +17,10 @@ const form = ref<LoginForm>(
 
 const handleSubmit = async () => {
     try {
-        await userStore.login(form.value)
-        router.push('/')
+        const result = await userStore.login(form.value)
+        console.log('登录成功:', result)
+        console.log('用户状态:', userStore.state.currentUser)
+        await router.push('/')
     } catch (error: any) {
         console.error('登录失败:', error.message)
         ElMessage.error(error.message)

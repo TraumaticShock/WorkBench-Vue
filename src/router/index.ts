@@ -47,12 +47,12 @@ router.beforeEach((to, from, next) => {
 
   if (
     to.matched.some((record) => record.meta.requiresAuth) &&
-    !userStore.isAuthenticated
+    !userStore.state.isAuthenticated
   ) {
     next('/auth/login');
   } else if (
     to.matched.some((record) => record.meta.guest) &&
-    userStore.isAuthenticated
+    userStore.state.isAuthenticated
   ) {
     next('/');
   } else {

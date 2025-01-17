@@ -8,27 +8,27 @@
                     <div class="flex items-center gap-2 text-xs">
                         <div class="flex items-center gap-1">
                             <div class="badge badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="getTodoPage">全部 {{ todoStore.totalCount?.count || 0 }}</div>
+                                @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="getTodoPageUrgent">紧急 {{ todoStore.urgentCount?.count || 0 }}</div>
+                                @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="getTodoPageImportant">重要 {{ todoStore.importantCount?.count || 0 }}</div>
+                                @click="handleTagClick({ priority: 'medium' })">重要 {{ todoStore.state.stats.importantCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-accent badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="getTodoPageNormal">一般 {{ todoStore.normalCount?.count || 0 }}</div>
+                                @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-success badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="getTodoPageCompleted">已完成 {{ todoStore.completeCount?.count || 0 }}</div>
+                                @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-secondary badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="getTodoPageUncomplete">未完成 {{ todoStore.uncompleteCount?.count || 0 }}</div>
+                                @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount }}</div>
                         </div>
                     </div>
                 </div>
@@ -51,16 +51,16 @@
             <!-- 列表容器 -->
             <div class="py-2">
                 <!-- 加载状态和空数据提示 -->
-                <div v-if="loading && !stats.records.length" class="text-center py-2">
+                <div v-if="todoStore.state.loading && !todoStore.state.todoPage.records.length" class="text-center py-2">
                     <span class="loading loading-dots loading-md"></span>
                 </div>
-                <div v-else-if="!stats.records.length" class="text-center py-2 text-gray-500">
+                <div v-else-if="!todoStore.state.todoPage.records.length" class="text-center py-2 text-gray-500">
                     暂无待办事项
                 </div>
 
                 <!-- 待办列表项 -->
                 <template v-else>
-                    <div v-for="todo in stats.records" :key="todo.id"
+                    <div v-for="todo in todoStore.state.todoPage.records" :key="todo.id"
                         class="mb-2 last:mb-0 flex items-center gap-3 p-3 bg-base-100 rounded-lg hover:bg-base-300 transition-colors">
                         <input type="checkbox" :checked="todo.status === 'completed'" class="checkbox checkbox-sm"
                             @change="toggleTodo(todo.id.toString(), todo.status)" />
@@ -109,7 +109,7 @@
                 </template>
 
                 <!-- 底部加载提示 -->
-                <div v-if="loading && stats.records.length" class="text-center py-2">
+                <div v-if="todoStore.state.loading && todoStore.state.todoPage.records.length" class="text-center py-2">
                     <span class="loading loading-dots loading-md"></span>
                 </div>
             </div>
@@ -117,12 +117,12 @@
     </div>
 
     <!-- 修改 Modal -->
-    <dialog id="description_modal" class="modal" @click="closeModal">
+    <dialog id="description_modal" class="modal" @click="handleModal('description_modal', 'close')">
         <div class="modal-box" @click.stop>
             <h3 class="font-bold text-lg">备注详情</h3>
             <p class="py-4">{{ currentDescription }}</p>
             <div class="modal-action">
-                <button class="btn" @click="closeModal">关闭</button>
+                <button class="btn" @click="handleModal('description_modal', 'close')">关闭</button>
             </div>
         </div>
     </dialog>
@@ -136,7 +136,7 @@
             <h3 class="font-bold text-lg">确认删除</h3>
             <p class="py-4">确定要删除这个待办吗？此操作不可撤销。</p>
             <div class="modal-action">
-                <button class="btn" @click="closeDeleteModal">取消</button>
+                <button class="btn" @click="handleModal('delete_confirm_modal', 'close')">取消</button>
                 <button class="btn btn-error" @click="confirmDelete">删除</button>
             </div>
         </div>
@@ -145,38 +145,15 @@
 
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
-import type { CreateTodoForm, Todo } from '@/types/todo'
+import type { CreateTodoFormParams, Todo } from '@/types/todo'
 import { ref } from 'vue'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
-import { storeToRefs } from 'pinia'
 
 const todoStore = useTodoStore()
-const { stats } = storeToRefs(todoStore)
 const currentDescription = ref('')
 const showTodoModal = ref(false)
-const loading = ref(false)
-const currentPage = ref(1)
-const hasMore = ref(true)
-
-
-// 添加当前编辑的待办数据
+const todoToDelete = ref('')
 const currentTodo = ref<Partial<Todo>>({})
-
-// 处理编辑按钮点击
-const handleEdit = (todo: Todo) => {
-    currentTodo.value = { ...todo }
-    showTodoModal.value = true
-}
-
-// 处理编辑提交
-const handleSubmit = async (todoData: CreateTodoForm) => {
-    try {
-        await todoStore.updateTodo(currentTodo.value.id!.toString(), todoData);
-        showTodoModal.value = false;
-    } catch (error: any) {
-        console.error('更新待办失败:', error);
-    }
-};
 
 // 添加当前筛选条件的状态
 const currentFilter = ref({
@@ -184,165 +161,111 @@ const currentFilter = ref({
     priority: undefined as string | undefined
 })
 
-// 修改获取待办列表方法，使用当前筛选条件
+// 统一的标签切换处理方法
+const handleTagClick = async (filter: { status?: string | undefined, priority?: string | undefined }) => {
+    currentFilter.value = {
+        status: filter.status ?? undefined,
+        priority: filter.priority ?? undefined
+    }
+    await fetchTodoList(1, false)
+    scrollToTop()
+}
+
+// 统一的 Modal 处理方法
+const handleModal = (modalId: string, action: 'show' | 'close') => {
+    const modal = document.getElementById(modalId) as HTMLDialogElement
+    if (action === 'show') {
+        modal?.showModal()
+    } else {
+        modal?.close()
+    }
+}
+
+// 修改获取待办列表方法
 const fetchTodoList = async (page = 1, append = false) => {
-    if (loading.value || (!append && !hasMore.value)) return
+    if (todoStore.state.loading || (!append && !todoStore.state.hasMore)) return
 
     try {
-        loading.value = true
+        todoStore.state.loading = true
         await todoStore.getTodoPage({
             page,
             size: 10,
-            ...currentFilter.value
+            ...currentFilter.value,
+            append: true
         })
-
-        hasMore.value = todoPage.value.records.length === 10
-        currentPage.value = page
     } catch (error) {
         console.error('获取待办列表失败:', error)
-    } finally {
-        loading.value = false
     }
 }
 
-// 获取优先级样式
-const getPriorityClass = (priority: string) => {
-    const classes = {
-        high: 'badge-error',
-        medium: 'badge-warning',
-        low: 'badge-info'
-    }
-    return classes[priority as keyof typeof classes] || 'badge-ghost'
-}
+// 优先级相关的常量
+const PRIORITY_CONFIG = {
+    high: { class: 'badge-error', text: '紧急' },
+    medium: { class: 'badge-warning', text: '重要' },
+    low: { class: 'badge-info', text: '一般' }
+} as const
 
-// 获取优先级文本
-const getPriorityText = (priority: string) => {
-    const texts = {
-        high: '紧急',
-        medium: '重要',
-        low: '一般'
-    }
-    return texts[priority as keyof typeof texts] || priority
-}
+const getPriorityClass = (priority: string) => 
+    PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.class || 'badge-ghost'
 
-// 添加滚动到顶部方法
+const getPriorityText = (priority: string) => 
+    PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.text || priority
+
 const scrollToTop = () => {
-    const container = document.getElementById('scrollContainer')
-    container?.scrollTo({ top: 0, behavior: 'smooth' })
+    document.getElementById('scrollContainer')?.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-// 修改标签点击事件，设置对应的筛选条件
-const getTodoPage = async () => {
-    currentFilter.value = { status: undefined, priority: undefined }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
+// 处理编辑
+const handleEdit = (todo: Todo) => {
+    currentTodo.value = { ...todo }
+    showTodoModal.value = true
 }
 
-const getTodoPageUrgent = async () => {
-    currentFilter.value = { status: undefined, priority: 'high' }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
+const handleSubmit = async (todoData: CreateTodoFormParams) => {
+    try {
+        await todoStore.updateTodo(currentTodo.value.id!.toString(), todoData)
+        showTodoModal.value = false
+    } catch (error) {
+        console.error('更新待办失败:', error)
+    }
 }
 
-// 点击重要标签事件
-const getTodoPageImportant = async () => {
-    currentFilter.value = { status: undefined, priority: 'medium' }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 点击一般标签事件
-const getTodoPageNormal = async () => {
-    currentFilter.value = { status: undefined, priority: 'low' }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 点击已完成标签事件
-const getTodoPageCompleted = async () => {
-    currentFilter.value = { status: 'completed', priority: undefined }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 点击未完成标签事件
-const getTodoPageUncomplete = async () => {
-    currentFilter.value = { status: 'pending', priority: undefined }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 打开描述详情
 const openDescription = (description: string) => {
     currentDescription.value = description
-    const modal = document.getElementById('description_modal') as HTMLDialogElement
-    modal?.showModal()
+    handleModal('description_modal', 'show')
 }
 
-// 处理滚动事件
 const handleScroll = async (e: Event) => {
     const target = e.target as HTMLElement
     const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight
-
-    // 当滚动到距离底部 50px 时加载更多
-    if (scrollBottom < 50 && !loading.value && hasMore.value) {
-        await fetchTodoList(currentPage.value + 1, true)
+    
+    if (scrollBottom < 50 && !todoStore.state.loading && todoStore.state.hasMore) {
+        await fetchTodoList(todoStore.state.todoPage.current + 1, true)
     }
 }
 
-// 添加关闭 modal 的方法
-const closeModal = () => {
-    const modal = document.getElementById('description_modal') as HTMLDialogElement
-    modal?.close()
-}
-
-// 添加待删除的ID
-const todoToDelete = ref('')
-
-// 修改删除方法
 const handleDelete = (id: string) => {
     todoToDelete.value = id
-    const modal = document.getElementById('delete_confirm_modal') as HTMLDialogElement
-    modal?.showModal()
+    handleModal('delete_confirm_modal', 'show')
 }
 
-// 关闭删除确认框
-const closeDeleteModal = () => {
-    const modal = document.getElementById('delete_confirm_modal') as HTMLDialogElement
-    modal?.close()
-}
-
-// 确认删除
 const confirmDelete = async () => {
     try {
-        await todoStore.deleteTodo(todoToDelete.value);
-        closeDeleteModal();
-    } catch (error: any) {
-        console.error('删除待办失败:', error);
+        await todoStore.deleteTodo(todoToDelete.value)
+        handleModal('delete_confirm_modal', 'close')
+    } catch (error) {
+        console.error('删除待办失败:', error)
     }
-};
+}
 
-// 修改切换待办状态的方法
 const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
     try {
-        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-        await todoStore.updateTodo(id, { status: newStatus } as any);
+        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
+        await todoStore.updateTodo(id, { status: newStatus } as any)
     } catch (error) {
-        console.error('更新待办状态失败:', error);
+        console.error('更新待办状态失败:', error)
     }
-};
+}
 
 </script>
 

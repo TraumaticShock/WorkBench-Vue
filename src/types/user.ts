@@ -17,14 +17,14 @@ export interface User {
 }
 
 // 登录表单类型
-export interface LoginForm {
+export interface LoginFormParams {
   username: string;
   password: string;
   rememberMe?: boolean;
 }
 
 // 注册表单类型
-export interface SignUpForm {
+export interface SignUpFormParams {
   username: string;
   email: string;
   password: string;

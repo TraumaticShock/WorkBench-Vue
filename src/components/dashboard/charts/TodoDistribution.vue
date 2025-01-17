@@ -14,7 +14,7 @@ import { storeToRefs } from 'pinia';
 import { useTodoStore } from '@/stores/todo';
 
 const todoStore = useTodoStore();
-const { stats } = storeToRefs(todoStore);
+const { state } = storeToRefs(todoStore);
 
 // 使用 computed 处理图表配置
 const taskPieChartOption = computed(() => ({
@@ -39,7 +39,7 @@ const taskPieChartOption = computed(() => ({
     },
     yAxis: {
         type: 'category',
-        data: stats.category?.categories || [],
+        data: state.value.stats.categoryCount.categories || [],
         axisLabel: {
             fontSize: 10
         }
@@ -48,7 +48,7 @@ const taskPieChartOption = computed(() => ({
         {
             name: '待办数量',
             type: 'bar',
-            data: stats.category?.counts || [],
+            data: state.value.stats.categoryCount.counts || [],
             itemStyle: {
                 color: {
                     type: 'linear',

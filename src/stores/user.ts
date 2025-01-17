@@ -1,82 +1,68 @@
 import { defineStore } from 'pinia';
-import type { LoginForm, SignUpForm, User } from '@/types/user';
+import type { LoginFormParams, SignUpFormParams, User } from '@/types/user';
 import { userApi } from '@/api/user';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 
-export const useUserStore = defineStore(
-  'user',
-  () => {
-    const currentUser = ref<User | null>(null);
-    const isAuthenticated = ref(false);
+export const useUserStore = defineStore('user', () => {
+  // 只保留一个状态对象
+  const state = ref<{
+    currentUser: User | null;
+    isAuthenticated: boolean;
+  }>({
+    currentUser: null,
+    isAuthenticated: false
+  });
 
-    const token = computed(() => currentUser.value?.token);
-    const refreshToken = computed(() => currentUser.value?.refreshToken);
-    const userInfo = computed(() => currentUser.value);
+  const actions = {
+    setUser(userData: User) {
+      state.value.currentUser = userData;
+      state.value.isAuthenticated = true;
+    },
 
-    // 登录
-    async function login(loginForm: LoginForm) {
+    logout() {
+      state.value.currentUser = null;
+      state.value.isAuthenticated = false;
+    },
+
+    async login(loginForm: LoginFormParams) {
       const response = await userApi.login(loginForm);
       if (response.data.code === 200) {
-        setUser(response.data.data);
-        return response.data;
-      } else {
-        throw new Error(response.data.message);
+        actions.setUser(response.data.data);
+        return response.data.data;
       }
-    }
+      throw new Error(response.data.message);
+    },
 
-    // 注册
-    async function signup(signupForm: SignUpForm) {
+    async signup(signupForm: SignUpFormParams) {
       const response = await userApi.signup(signupForm);
       if (response.data.code === 200) {
-        // setUser(response.data.data);
         return response.data;
-      } else {
-        throw new Error(response.data.message);
       }
-    }
+      throw new Error(response.data.message);
+    },
 
-    // 设置用户
-    function setUser(user: User) {
-      currentUser.value = user;
-      isAuthenticated.value = true;
-    }
-
-    // 登出
-    function logout() {
-      currentUser.value = null;
-      isAuthenticated.value = false;
-    }
-
-    // 刷新令牌
-    async function refreshTokenFn() {
+    async refreshTokenFn() {
       try {
-        const response = await userApi.refreshToken(refreshToken.value || '');
+        const response = await userApi.refreshToken(state.value.currentUser?.refreshToken || '');
         if (response.data.code === 200) {
-          setUser(response.data.data);
+          actions.setUser(response.data.data);
           return response;
-        } else {
-          throw new Error(response.data.message);
         }
+        throw new Error(response.data.message);
       } catch (error) {
-        logout();
+        actions.logout();
         throw error;
       }
     }
+  };
 
-    return {
-      currentUser,
-      isAuthenticated,
-      token,
-      refreshToken,
-      userInfo,
-      login,
-      signup,
-      setUser,
-      logout,
-      refreshTokenFn,
-    };
-  },
-  {
-    persist: true,
+  return {
+    state,
+    ...actions
+  };
+}, {
+  persist: {
+    key: 'user-storage',
+    storage: localStorage,
   }
-);
+});

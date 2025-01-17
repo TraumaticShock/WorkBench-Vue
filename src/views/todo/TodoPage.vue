@@ -10,29 +10,29 @@
                             <div class="flex items-center gap-2 text-xs">
                                 <div class="flex items-center gap-1">
                                     <div class="badge badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="getTodoPage">全部 {{ todoStore.totalCount?.count || 0 }}</div>
+                                        @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount || 0 }}</div>
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="getTodoPageUrgent">紧急 {{ todoStore.urgentCount?.count || 0 }}</div>
+                                        @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount || 0 }}</div>
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="getTodoPageImportant">重要 {{ todoStore.importantCount?.count || 0 }}
+                                        @click="handleTagClick({ priority: 'medium' })">重要 {{ todoStore.state.stats.importantCount || 0 }}
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <div class="badge badge-accent badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="getTodoPageNormal">一般 {{ todoStore.normalCount?.count || 0 }}</div>
+                                        @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount || 0 }}</div>
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <div class="badge badge-success badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="getTodoPageCompleted">已完成 {{ todoStore.completeCount?.count || 0 }}
+                                        @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount || 0 }}
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-1">
                                     <div class="badge badge-secondary badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="getTodoPageUncomplete">未完成 {{ todoStore.uncompleteCount?.count || 0 }}
+                                        @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount || 0 }}
                                     </div>
                                 </div>
                             </div>
@@ -55,57 +55,51 @@
                     <!-- 待办列表部分 -->
                     <div class="flex-1">
                         <!-- 加载状态和空数据提示 -->
-                        <div v-if="loading && !todoPage.records.length" class="text-center py-2">
+                        <div v-if="loading && !todoStore.state.todoPage.records.length" class="text-center py-2">
                             <span class="loading loading-dots loading-md"></span>
                         </div>
-                        <div v-else-if="!todoPage.records.length" class="text-center py-2 text-gray-500">
+                        <div v-else-if="!todoStore.state.todoPage.records.length" class="text-center py-2 text-gray-500">
                             暂无待办事项
                         </div>
                         <!-- 待办列表项 -->
                         <template v-else>
-                            <div v-for="todo in todoPage.records" :key="todo.id"
-                                class="mb-2 last:mb-0 flex items-center gap-3 p-3 bg-base-100 rounded-lg hover:bg-base-300 transition-colors cursor-pointer"
+                            <div v-for="todo in todoStore.state.todoPage.records" :key="todo.id"
+                                class="todo-item mb-2 last:mb-0 flex items-center gap-3 p-3 bg-base-100 rounded-lg hover:bg-base-300 transition-colors cursor-pointer"
                                 @click="selectTodo(todo)">
                                 <input type="checkbox" :checked="todo.status === 'completed'"
                                     class="checkbox checkbox-sm"
                                     @change="toggleTodo(todo.id.toString(), todo.status)" />
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <span :class="{ 'line-through opacity-50': todo.status === 'completed' }">{{
-                                            todo.title
-                                        }}</span>
-                                        <div v-if="todo.priority"
-                                            :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
-                                            {{ getPriorityText(todo.priority) }}
-                                        </div>
-                                        <div v-if="todo.category" class="badge badge-ghost badge-sm">
-                                            {{ todo.category }}
-                                        </div>
-                                        <div v-if="todo.dueDate" class="text-xs opacity-50">
-                                            {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
-                                                year: 'numeric', month:
-                                                    'long', day: 'numeric'
-                                            }) }}
-                                            {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', { weekday: 'long' })
-                                            }}
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="truncate flex-shrink" :class="{ 'line-through opacity-50': todo.status === 'completed' }">
+                                            {{ todo.title }}
+                                        </span>
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <div v-if="todo.priority"
+                                                :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
+                                                {{ getPriorityText(todo.priority) }}
+                                            </div>
+                                            <div v-if="todo.category" class="badge badge-ghost badge-sm">
+                                                {{ todo.category }}
+                                            </div>
+                                            <div v-if="todo.dueDate" class="text-xs opacity-50">
+                                                {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                }) }}
+                                                {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', { weekday: 'long' }) }}
+                                            </div>
                                         </div>
                                     </div>
                                     <div v-if="todo.description"
-                                        class="text-xs opacity-50 mt-1 line-clamp-2 cursor-pointer text-left"
-                                        style="max-height: 2.4em; min-height: 0;">
+                                        class="description-text text-xs opacity-50 mt-1 text-left">
                                         {{ todo.description }}
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <!-- <button class="btn btn-ghost btn-xs btn-square" @click="handleEdit(todo)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg>
-                                    </button> -->
+                                <div class="flex items-center gap-1 flex-shrink-0">
                                     <button class="btn btn-ghost btn-xs btn-square text-error"
-                                        @click="handleDelete(todo.id.toString())">
+                                        @click.stop="handleDelete(todo.id.toString())">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -116,18 +110,18 @@
                             </div>
                             <!-- 分页部分 -->
                             <div class="py-2 border-t border-base-300 flex items-center justify-center gap-2 mt-4">
-                                <button class="btn btn-xs btn-ghost" :disabled="todoPage.current === 1"
-                                    @click="changePage(todoPage.current - 1)">
+                                <button class="btn btn-xs btn-ghost" :disabled="todoStore.state.todoPage.current === 1"
+                                    @click="changePage(todoStore.state.todoPage.current - 1)">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M15 19l-7-7 7-7" />
                                     </svg>
                                 </button>
-                                <span class="text-xs opacity-50">第 {{ todoPage.current }} / {{ todoPage.pages }}
+                                <span class="text-xs opacity-50">第 {{ todoStore.state.todoPage.current }} / {{ todoStore.state.todoPage.pages }}
                                     页</span>
-                                <button class="btn btn-xs btn-ghost" :disabled="todoPage.current === todoPage.pages"
-                                    @click="changePage(todoPage.current + 1)">
+                                <button class="btn btn-xs btn-ghost" :disabled="todoStore.state.todoPage.current === todoStore.state.todoPage.pages"
+                                    @click="changePage(todoStore.state.todoPage.current + 1)">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -138,7 +132,7 @@
                                 <div class="flex items-center gap-2 ml-4">
                                     <span class="text-xs opacity-50">跳转到</span>
                                     <input type="number" class="input input-xs input-bordered w-14" v-model="jumpPage"
-                                        min="1" :max="todoPage.pages" @keyup.enter="handleJump">
+                                        min="1" :max="todoStore.state.todoPage.pages" @keyup.enter="handleJump">
                                     <button class="btn btn-xs btn-primary" @click="handleJump"
                                         :disabled="!isValidJumpPage">
                                         跳转
@@ -148,15 +142,12 @@
                         </template>
                     </div>
                     <!-- 待办详情部分 -->
-                    <div class="flex-1 rounded-lg p-4">
+                    <div class="flex-1 rounded-lg p-4 relative">
                         <div v-if="selectedTodo" class="space-y-4">
                             <!-- 标题 -->
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center">
                                 <input v-model="selectedTodo.title"
                                     class="text-lg font-bold bg-transparent border-b border-transparent hover:border-base-300 focus:border-primary outline-none w-full">
-                                <button class="btn btn-primary btn-sm" @click="saveChanges">
-                                    保存更改
-                                </button>
                             </div>
 
                             <!-- 标签和状态 -->
@@ -169,8 +160,14 @@
                                 </select>
 
                                 <!-- 分类输入 -->
-                                <input v-model="selectedTodo.category" class="input input-sm input-bordered"
-                                    placeholder="分类">
+                                <!-- <input v-model="selectedTodo.category" class="input input-sm input-bordered"
+                                    placeholder="分类"> -->
+                                <select class="select select-bordered" v-model="selectedTodo.category" required>
+                                    <option value="">请选择分类</option>
+                                    <option v-for="category in categories" :key="category.id" :value="category.name">
+                                        {{ category.name }}
+                                    </option>
+                                </select>
 
                                 <!-- 状态切换 -->
                                 <select v-model="selectedTodo.status" class="select select-sm select-bordered">
@@ -198,8 +195,15 @@
                             </div>
 
                             <!-- 创建时间 -->
-                            <div class="text-xs opacity-50">
+                            <div class="text-xs opacity-50 mb-16">
                                 创建时间：{{ new Date(selectedTodo.createdAt).toLocaleString() }}
+                            </div>
+
+                            <!-- 保存按钮 - 固定在右下角 -->
+                            <div class="absolute bottom-4 right-4">
+                                <button class="btn btn-primary" @click="saveChanges">
+                                    保存更改
+                                </button>
                             </div>
                         </div>
                         <div v-else class="h-full flex items-center justify-center text-sm opacity-50">
@@ -220,7 +224,7 @@
             <h3 class="font-bold text-lg">确认删除</h3>
             <p class="py-4">确定要删除这个待办吗？此操作不可撤销。</p>
             <div class="modal-action">
-                <button class="btn" @click="closeDeleteModal">取消</button>
+                <button class="btn" @click="handleModal('delete_confirm_modal', 'close')">取消</button>
                 <button class="btn btn-error" @click="confirmDelete">删除</button>
             </div>
         </div>
@@ -229,26 +233,21 @@
 
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
-import type { CreateTodoForm, Todo } from '@/types/todo'
+import type { CreateTodoFormParams, Todo } from '@/types/todo'
 import { ref, onMounted, computed } from 'vue'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
-import { storeToRefs } from 'pinia'
 
 const todoStore = useTodoStore()
-const { todoPage } = storeToRefs(todoStore)
 const showTodoModal = ref(false)
-
-// 处理创建待办
-const handleSubmit = async (todoData: CreateTodoForm) => {
-    try {
-        await todoStore.createTodo(todoData);
-        showTodoModal.value = false;
-        // 一次性刷新所有数据
-        await todoStore.refreshAllTodoData();
-    } catch (error: any) {
-        console.error('创建待办失败:', error);
-    }
-};
+const loading = ref(false)
+const jumpPage = ref(1)
+const todoToDelete = ref('')
+const selectedTodo = ref<Todo | null>(null)
+    const categories = ref([
+    { id: '1', name: '工作' },
+    { id: '2', name: '生活' },
+    { id: '3', name: '学习' }
+]);
 
 // 添加当前筛选条件的状态
 const currentFilter = ref({
@@ -256,26 +255,37 @@ const currentFilter = ref({
     priority: undefined as string | undefined
 })
 
-// 修改获取待办列表方法，使用当前筛选条件
-const fetchTodoList = async (page = 1, append = false) => {
-    if (loading.value || (!append && !hasMore.value)) return
+// 统一的标签切换处理方法
+const handleTagClick = async (filter: { status?: string | undefined, priority?: string | undefined }) => {
+    currentFilter.value = {
+        status: filter.status ?? undefined,
+        priority: filter.priority ?? undefined
+    }
+    await fetchTodoList(1)
+}
+
+// 统一的 Modal 处理方法
+const handleModal = (modalId: string, action: 'show' | 'close') => {
+    const modal = document.getElementById(modalId) as HTMLDialogElement
+    if (action === 'show') {
+        modal?.showModal()
+    } else {
+        modal?.close()
+    }
+}
+
+// 修改获取待办列表方法
+const fetchTodoList = async (page = 1) => {
+    if (loading.value) return
 
     try {
         loading.value = true
-        const result = await todoStore.getTodoPage({
+        await todoStore.getTodoPage({
             page,
             size: 10,
-            ...currentFilter.value  // 使用当前筛选条件
+            ...currentFilter.value,
+            append: false // 明确指定不使用追加模式
         })
-
-        if (append) {
-            todoPage.value.records = [...todoPage.value.records, ...result.records]
-        } else {
-            todoPage.value = result
-        }
-
-        hasMore.value = result.records.length === 10
-        currentPage.value = page
     } catch (error) {
         console.error('获取待办列表失败:', error)
     } finally {
@@ -283,206 +293,112 @@ const fetchTodoList = async (page = 1, append = false) => {
     }
 }
 
-// 获取优先级样式
-const getPriorityClass = (priority: string) => {
-    const classes = {
-        high: 'badge-error',
-        medium: 'badge-warning',
-        low: 'badge-info'
-    }
-    return classes[priority as keyof typeof classes] || 'badge-ghost'
-}
+// 优先级配置
+const PRIORITY_CONFIG = {
+    high: { class: 'badge-error', text: '紧急' },
+    medium: { class: 'badge-warning', text: '重要' },
+    low: { class: 'badge-info', text: '一般' }
+} as const
 
-// 获取优先级文本
-const getPriorityText = (priority: string) => {
-    const texts = {
-        high: '紧急',
-        medium: '重要',
-        low: '一般'
-    }
-    return texts[priority as keyof typeof texts] || priority
-}
+const getPriorityClass = (priority: string) => 
+    PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.class || 'badge-ghost'
 
-// 添加滚动到顶部方法
-const scrollToTop = () => {
-    const container = document.getElementById('scrollContainer')
-    container?.scrollTo({ top: 0, behavior: 'smooth' })
-}
+const getPriorityText = (priority: string) => 
+    PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.text || priority
 
-// 修改标签点击事件，设置对应的筛选条件
-const getTodoPage = async () => {
-    currentFilter.value = { status: undefined, priority: undefined }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-const getTodoPageUrgent = async () => {
-    currentFilter.value = { status: undefined, priority: 'high' }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 点击重要标签事件
-const getTodoPageImportant = async () => {
-    currentFilter.value = { status: undefined, priority: 'medium' }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 点击一般标签事件
-const getTodoPageNormal = async () => {
-    currentFilter.value = { status: undefined, priority: 'low' }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 点击已完成标签事件
-const getTodoPageCompleted = async () => {
-    currentFilter.value = { status: 'completed', priority: undefined }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 点击未完成标签事件
-const getTodoPageUncomplete = async () => {
-    currentFilter.value = { status: 'pending', priority: undefined }
-    currentPage.value = 1
-    hasMore.value = true
-    await fetchTodoList(1, false)
-    scrollToTop()
-}
-
-// 处理滚动事件
-const handleScroll = async (e: Event) => {
-    const target = e.target as HTMLElement
-    const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight
-
-    // 当滚动到距离底部 50px 时加载更多
-    if (scrollBottom < 50 && !loading.value && hasMore.value) {
-        await fetchTodoList(currentPage.value + 1, true)
+// 处理创建待办
+const handleSubmit = async (todoData: CreateTodoFormParams) => {
+    try {
+        await todoStore.createTodo(todoData)
+        showTodoModal.value = false
+        await todoStore.refreshAllTodoData()
+    } catch (error) {
+        console.error('创建待办失败:', error)
     }
 }
 
-const loading = ref(false)
-const currentPage = ref(1)
-const hasMore = ref(true)
-
-// 添加关闭 modal 的方法
-const closeModal = () => {
-    const modal = document.getElementById('description_modal') as HTMLDialogElement
-    modal?.close()
-}
-
-// 添加待删除的ID
-const todoToDelete = ref('')
-
-// 修改删除方法
+// 处理删除
 const handleDelete = (id: string) => {
     todoToDelete.value = id
-    const modal = document.getElementById('delete_confirm_modal') as HTMLDialogElement
-    modal?.showModal()
-}
-
-// 关闭删除确认框
-const closeDeleteModal = () => {
-    const modal = document.getElementById('delete_confirm_modal') as HTMLDialogElement
-    modal?.close()
+    handleModal('delete_confirm_modal', 'show')
 }
 
 // 确认删除
 const confirmDelete = async () => {
     try {
-        await todoStore.deleteTodo(todoToDelete.value);
-        closeDeleteModal();
-
+        await todoStore.deleteTodo(todoToDelete.value)
+        handleModal('delete_confirm_modal', 'close')
+        
         // 如果当前页没有数据了且不是第一页，则加载上一页
-        if (todoPage.value.records.length === 0 && currentPage.value > 1) {
-            currentPage.value--;
-            hasMore.value = true;
-            await fetchTodoList(currentPage.value, false);
+        if (todoStore.state.todoPage.records.length === 0 && todoStore.state.todoPage.current > 1) {
+            await fetchTodoList(todoStore.state.todoPage.current - 1)
         }
-    } catch (error: any) {
-        console.error('删除待办失败:', error);
+    } catch (error) {
+        console.error('删除待办失败:', error)
     }
-};
+}
 
-// 修改切换待办状态的方法
+// 切换待办状态
 const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
     try {
-        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
-        await todoStore.updateTodo(id, { status: newStatus } as any);
+        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
+        await todoStore.updateTodo(id, { status: newStatus } as any)
     } catch (error) {
-        console.error('更新待办状态失败:', error);
+        console.error('更新待办状态失败:', error)
     }
-};
+}
 
-// 添加切换页面的方法
+// 切换页面
 const changePage = async (page: number) => {
-    if (page < 1 || page > todoPage.value.pages) return;
-    currentPage.value = page;
-    hasMore.value = true;
-    await fetchTodoList(page, false);
-    scrollToTop();
-};
-
-// 添加跳转页码的响应式变量
-const jumpPage = ref(1);
+    if (page < 1 || page > todoStore.state.todoPage.pages) return
+    await fetchTodoList(page)
+}
 
 // 判断跳转页码是否有效
 const isValidJumpPage = computed(() => {
-    const page = Number(jumpPage.value);
-    return page >= 1 && page <= todoPage.value.pages;
-});
+    const page = Number(jumpPage.value)
+    return page >= 1 && page <= todoStore.state.todoPage.pages
+})
 
 // 处理跳转
 const handleJump = () => {
     if (isValidJumpPage.value) {
-        changePage(Number(jumpPage.value));
+        changePage(Number(jumpPage.value))
     }
-};
+}
 
-// 添加选中的待办
-const selectedTodo = ref<Todo | null>(null);
-
-// 选择待办的方法
+// 选择待办
 const selectTodo = (todo: Todo) => {
-    selectedTodo.value = todo;
-};
+    selectedTodo.value = { ...todo }
+}
 
 // 保存更改
 const saveChanges = async () => {
-    if (!selectedTodo.value) return;
+    if (!selectedTodo.value) return
 
     try {
-        await todoStore.updateTodo(selectedTodo.value.id.toString(), {
+        const updateData = {
             title: selectedTodo.value.title,
             description: selectedTodo.value.description,
             priority: selectedTodo.value.priority,
             category: selectedTodo.value.category,
             dueDate: selectedTodo.value.dueDate,
-        });
-
+            status: selectedTodo.value.status
+        }
+        
+        await todoStore.updateTodo(selectedTodo.value.id.toString(), updateData)
+        
         // 更新列表中的对应项
-        const index = todoPage.value.records.findIndex(
+        const index = todoStore.state.todoPage.records.findIndex(
             todo => todo.id === selectedTodo.value?.id
-        );
+        )
         if (index !== -1) {
-            todoPage.value.records[index] = { ...selectedTodo.value };
+            todoStore.state.todoPage.records[index] = { ...selectedTodo.value }
         }
     } catch (error) {
-        console.error('更新待办失败:', error);
+        console.error('更新待办失败:', error)
     }
-};
+}
 
 onMounted(() => {
     fetchTodoList()
@@ -509,13 +425,27 @@ onMounted(() => {
     background-color: rgba(0, 0, 0, 0.3);
 }
 
-/* 添加描述文本的样式 */
-.line-clamp-2 {
+/* 待办项样式 */
+.todo-item {
+    height: 80px; /* 设置固定高度 */
+    min-height: 80px;
+}
+
+/* 描述文本样式 */
+.description-text {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1; /* 只显示一行 */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
+    height: 1.5em; /* 固定高度为一行 */
+}
+
+/* 标题文本样式 */
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* 设置最大宽度 */
 }
 </style>

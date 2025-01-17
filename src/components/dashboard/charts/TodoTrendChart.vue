@@ -8,7 +8,7 @@ import {
     GridComponent
 } from 'echarts/components';
 import VChart from 'vue-echarts';
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useTodoStore } from '@/stores/todo'
 
@@ -21,8 +21,17 @@ use([
 ]);
 
 const todoStore = useTodoStore();
-const { stats } = storeToRefs(todoStore);
+const { state } = storeToRefs(todoStore);
+
+
 const isLoading = ref(true);
+
+// 监听器来处理数据加载状态
+watchEffect(() => {
+    if (state.value.stats.weekCompleteCount && state.value.stats.weekCompleteCount.length > 0) {
+        isLoading.value = false;
+    }
+});
 
 const lineChartOption = computed(() => ({
     tooltip: {
@@ -53,7 +62,7 @@ const lineChartOption = computed(() => ({
             name: '已完成',
             type: 'line',
             smooth: true,
-            data: stats.weekComplete?.count || [],
+            data: state.value.stats.weekCompleteCount,
             itemStyle: {
                 color: '#36d399'
             },

@@ -33,17 +33,15 @@ import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
 import { useTodoStore } from '@/stores/todo'
-import type { CreateTodoForm } from '@/types/todo'
+import type { CreateTodoFormParams } from '@/types/todo'
 
 const todoStore = useTodoStore()
 const showTodoModal = ref(false)
 
-const handleSubmit = async (todoData: CreateTodoForm) => {
+const handleSubmit = async (todoData: CreateTodoFormParams) => {
     try {
         await todoStore.createTodo(todoData);
         showTodoModal.value = false;
-        // 一次性刷新所有数据
-        await todoStore.refreshAllTodoData();
     } catch (error: any) {
         console.error('创建待办失败:', error);
         ElMessage.error(error.message || '创建待办失败');

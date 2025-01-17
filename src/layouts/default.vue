@@ -12,6 +12,4 @@
 
 <script setup lang="ts">
 import LeftNavigation from '@/components/layout/LeftNavigation.vue'
-import TopNavigation from '@/components/layout/TopNavigation.vue'
-import Footer from '@/components/layout/Footer.vue'
 </script>
