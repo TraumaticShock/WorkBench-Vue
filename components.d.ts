@@ -33,7 +33,6 @@ declare module 'vue' {
     TodoDistribution: typeof import('./src/components/dashboard/charts/TodoDistribution.vue')['default']
     TodoEditDialog: typeof import('./src/components/todo/TodoEditDialog.vue')['default']
     TodoList: typeof import('./src/components/dashboard/TodoList.vue')['default']
-    TodoStats: typeof import('./src/components/todo/TodoStats.vue')['default']
     TodoTrendChart: typeof import('./src/components/dashboard/charts/TodoTrendChart.vue')['default']
     TopNavigation: typeof import('./src/components/layout/TopNavigation.vue')['default']
     UploadModal: typeof import('./src/components/files/UploadModal.vue')['default']

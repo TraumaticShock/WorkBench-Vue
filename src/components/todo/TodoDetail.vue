@@ -53,11 +53,11 @@
                             <span class="label-text font-medium">状态</span>
                         </label>
                         <div class="join w-full">
-                            <button class="join-item btn flex-1" :class="{'btn-active': form.status === 'pending'}"
+                            <button class="join-item btn flex-1" :class="{ 'btn-active': form.status === 'pending' }"
                                 @click="form.status = 'pending'">
                                 进行中
                             </button>
-                            <button class="join-item btn flex-1" :class="{'btn-active': form.status === 'completed'}"
+                            <button class="join-item btn flex-1" :class="{ 'btn-active': form.status === 'completed' }"
                                 @click="form.status = 'completed'">
                                 已完成
                             </button>
@@ -70,17 +70,17 @@
                             <span class="label-text font-medium">优先级</span>
                         </label>
                         <div class="join w-full">
-                            <button class="join-item btn flex-1" :class="{'btn-active': form.priority === 'low'}"
+                            <button class="join-item btn flex-1" :class="{ 'btn-active': form.priority === 'low' }"
                                 @click="form.priority = 'low'">
                                 <span class="w-2 h-2 rounded-full bg-success mr-2"></span>
                                 一般
                             </button>
-                            <button class="join-item btn flex-1" :class="{'btn-active': form.priority === 'medium'}"
+                            <button class="join-item btn flex-1" :class="{ 'btn-active': form.priority === 'medium' }"
                                 @click="form.priority = 'medium'">
                                 <span class="w-2 h-2 rounded-full bg-warning mr-2"></span>
                                 重要
                             </button>
-                            <button class="join-item btn flex-1" :class="{'btn-active': form.priority === 'high'}"
+                            <button class="join-item btn flex-1" :class="{ 'btn-active': form.priority === 'high' }"
                                 @click="form.priority = 'high'">
                                 <span class="w-2 h-2 rounded-full bg-error mr-2"></span>
                                 紧急
@@ -94,11 +94,8 @@
                             <span class="label-text font-medium">分类</span>
                         </label>
                         <div class="join w-full">
-                            <button v-for="category in availableCategories" 
-                                :key="category"
-                                class="join-item btn flex-1" 
-                                :class="{'btn-active': form.category === category}"
-                                @click="form.category = category">
+                            <button v-for="category in availableCategories" :key="category" class="join-item btn flex-1"
+                                :class="{ 'btn-active': form.category === category }" @click="form.category = category">
                                 {{ category }}
                             </button>
                         </div>
@@ -109,8 +106,7 @@
                         <label class="label">
                             <span class="label-text font-medium">截止日期</span>
                         </label>
-                        <input type="datetime-local" v-model="form.dueDate"
-                            class="input input-bordered w-full" />
+                        <input type="datetime-local" v-model="form.dueDate" class="input input-bordered w-full" />
                     </div>
                 </div>
             </div>
@@ -195,4 +191,4 @@ const handleCancel = () => {
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
     background-color: rgba(0, 0, 0, 0.3);
 }
-</style> 
+</style>

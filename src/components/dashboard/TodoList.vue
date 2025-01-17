@@ -12,23 +12,28 @@
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount }}</div>
+                                @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount }}
+                            </div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ priority: 'medium' })">重要 {{ todoStore.state.stats.importantCount }}</div>
+                                @click="handleTagClick({ priority: 'medium' })">重要 {{
+                                    todoStore.state.stats.importantCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-accent badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount }}</div>
+                                @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount }}
+                            </div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-success badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount }}</div>
+                                @click="handleTagClick({ status: 'completed' })">已完成 {{
+                                    todoStore.state.stats.completeCount }}</div>
                         </div>
                         <div class="flex items-center gap-1">
                             <div class="badge badge-secondary badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount }}</div>
+                                @click="handleTagClick({ status: 'pending' })">未完成 {{
+                                    todoStore.state.stats.uncompleteCount }}</div>
                         </div>
                     </div>
                 </div>
@@ -51,7 +56,8 @@
             <!-- 列表容器 -->
             <div class="py-2">
                 <!-- 加载状态和空数据提示 -->
-                <div v-if="todoStore.state.loading && !todoStore.state.todoPage.records.length" class="text-center py-2">
+                <div v-if="todoStore.state.loading && !todoStore.state.todoPage.records.length"
+                    class="text-center py-2">
                     <span class="loading loading-dots loading-md"></span>
                 </div>
                 <div v-else-if="!todoStore.state.todoPage.records.length" class="text-center py-2 text-gray-500">
@@ -118,12 +124,8 @@
 
     <!-- 编辑详情 -->
     <dialog id="edit_modal" class="modal">
-        <div class="modal-box w-11/12 max-w-5xl h-[80vh] p-0 bg-transparent" @click.stop>
-            <TodoDetail
-                :todo="selectedTodo"
-                @save="saveChanges"
-                @cancel="handleModal('edit_modal', 'close')"
-            />
+        <div class="modal-box w-11/12 max-w-xl h-[80vh] p-0 bg-transparent" @click.stop>
+            <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="handleModal('edit_modal', 'close')" />
         </div>
         <form method="dialog" class="modal-backdrop">
             <button @click="selectedTodo = null">关闭</button>
@@ -220,10 +222,10 @@ const PRIORITY_CONFIG = {
     low: { class: 'badge-info', text: '一般' }
 } as const
 
-const getPriorityClass = (priority: string) => 
+const getPriorityClass = (priority: string) =>
     PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.class || 'badge-ghost'
 
-const getPriorityText = (priority: string) => 
+const getPriorityText = (priority: string) =>
     PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.text || priority
 
 const scrollToTop = () => {
@@ -247,9 +249,9 @@ const saveChanges = async (updatedTodo: Todo) => {
             dueDate: updatedTodo.dueDate,
             category: updatedTodo.category || '工作' // 使用默认分类
         }
-        
+
         await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
-        
+
         // 更新列表中的对应项
         const index = todoStore.state.todoPage.records.findIndex(
             todo => todo.id === updatedTodo.id
@@ -257,7 +259,7 @@ const saveChanges = async (updatedTodo: Todo) => {
         if (index !== -1) {
             todoStore.state.todoPage.records[index] = { ...updatedTodo }
         }
-        
+
         // 清除选中状态
         selectedTodo.value = null
     } catch (error) {
@@ -273,7 +275,7 @@ const openDescription = (description: string) => {
 const handleScroll = async (e: Event) => {
     const target = e.target as HTMLElement
     const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight
-    
+
     if (scrollBottom < 50 && !todoStore.state.loading && todoStore.state.hasMore) {
         await fetchTodoList(todoStore.state.todoPage.current + 1, true)
     }
