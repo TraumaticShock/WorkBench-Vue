@@ -2,11 +2,11 @@
 export interface Todo {
   id: number;
   title: string; // 标题
-  description?: string; // 描述
+  description: string; // 描述
   category: string; // 分类
   priority: 'low' | 'medium' | 'high'; // 优先级
   status: 'pending' | 'completed'; // 状态
-  dueDate?: string; // 截止日期
+  dueDate: string; // 截止日期
   createdAt: string; // 创建时间
   updatedAt: string; // 更新时间
 }
