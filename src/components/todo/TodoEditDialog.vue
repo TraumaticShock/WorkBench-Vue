@@ -81,6 +81,7 @@ const form = ref<CreateTodoFormParams>({
     title: '',
     category: '',
     priority: 'medium',
+    status: 'pending',
     dueDate: '',
     description: ''
 });
@@ -99,6 +100,7 @@ const handleSubmit = () => {
         title: '',
         category: '',
         priority: 'medium',
+        status: 'pending',
         dueDate: new Date().toISOString().split('T')[0],
         description: ''
     };

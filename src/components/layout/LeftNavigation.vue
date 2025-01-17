@@ -54,8 +54,8 @@ import Logo from '@/components/common/Logo.vue'
 const menuItems = [
     { name: '首页', path: '/', icon: 'home' },
     { name: '待办', path: '/todo', icon: 'todo' },
-    { name: '笔记', path: '/notes', icon: 'note' },
-    { name: '文件', path: '/files', icon: 'file' },
+    { name: '笔记', path: '/note', icon: 'note' },
+    { name: '文件', path: '/file', icon: 'file' },
     { name: '关于', path: '/', icon: 'info' }
 ]
 </script>

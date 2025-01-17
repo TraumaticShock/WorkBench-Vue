@@ -142,74 +142,11 @@
                         </template>
                     </div>
                     <!-- 待办详情部分 -->
-                    <div class="flex-1 rounded-lg p-4 relative">
-                        <div v-if="selectedTodo" class="space-y-4">
-                            <!-- 标题 -->
-                            <div class="flex items-center">
-                                <input v-model="selectedTodo.title"
-                                    class="text-lg font-bold bg-transparent border-b border-transparent hover:border-base-300 focus:border-primary outline-none w-full">
-                            </div>
-
-                            <!-- 标签和状态 -->
-                            <div class="flex items-center gap-2">
-                                <!-- 优先级选择 -->
-                                <select v-model="selectedTodo.priority" class="select select-sm select-bordered">
-                                    <option value="high">紧急</option>
-                                    <option value="medium">重要</option>
-                                    <option value="low">一般</option>
-                                </select>
-
-                                <!-- 分类输入 -->
-                                <!-- <input v-model="selectedTodo.category" class="input input-sm input-bordered"
-                                    placeholder="分类"> -->
-                                <select class="select select-bordered" v-model="selectedTodo.category" required>
-                                    <option value="">请选择分类</option>
-                                    <option v-for="category in categories" :key="category.id" :value="category.name">
-                                        {{ category.name }}
-                                    </option>
-                                </select>
-
-                                <!-- 状态切换 -->
-                                <select v-model="selectedTodo.status" class="select select-sm select-bordered">
-                                    <option value="pending">进行中</option>
-                                    <option value="completed">已完成</option>
-                                </select>
-                            </div>
-
-                            <!-- 截止日期 -->
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text text-sm opacity-70">截止日期</span>
-                                </label>
-                                <input type="datetime-local" v-model="selectedTodo.dueDate"
-                                    class="input input-sm input-bordered">
-                            </div>
-
-                            <!-- 描述 -->
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text text-sm opacity-70">描述</span>
-                                </label>
-                                <textarea v-model="selectedTodo.description"
-                                    class="textarea textarea-bordered min-h-[600px]" placeholder="添加描述..."></textarea>
-                            </div>
-
-                            <!-- 创建时间 -->
-                            <div class="text-xs opacity-50 mb-16">
-                                创建时间：{{ new Date(selectedTodo.createdAt).toLocaleString() }}
-                            </div>
-
-                            <!-- 保存按钮 - 固定在右下角 -->
-                            <div class="absolute bottom-4 right-4">
-                                <button class="btn btn-primary" @click="saveChanges">
-                                    保存更改
-                                </button>
-                            </div>
-                        </div>
-                        <div v-else class="h-full flex items-center justify-center text-sm opacity-50">
-                            选择一个待办查看详情
-                        </div>
-                    </div>
+                    <TodoDetail
+                        :todo="selectedTodo"
+                        @save="saveChanges"
+                        @cancel="selectedTodo = null"
+                    />
                 </div>
             </div>
         </div>
@@ -236,6 +173,7 @@ import { useTodoStore } from '@/stores/todo'
 import type { CreateTodoFormParams, Todo } from '@/types/todo'
 import { ref, onMounted, computed } from 'vue'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
+import TodoDetail from '@/components/todo/TodoDetail.vue'
 
 const todoStore = useTodoStore()
 const showTodoModal = ref(false)
@@ -373,28 +311,29 @@ const selectTodo = (todo: Todo) => {
 }
 
 // 保存更改
-const saveChanges = async () => {
-    if (!selectedTodo.value) return
-
+const saveChanges = async (updatedTodo: Todo) => {
     try {
         const updateData = {
-            title: selectedTodo.value.title,
-            description: selectedTodo.value.description,
-            priority: selectedTodo.value.priority,
-            category: selectedTodo.value.category,
-            dueDate: selectedTodo.value.dueDate,
-            status: selectedTodo.value.status
+            title: updatedTodo.title,
+            description: updatedTodo.description,
+            priority: updatedTodo.priority,
+            status: updatedTodo.status,
+            dueDate: updatedTodo.dueDate,
+            category: updatedTodo.category || '工作' // 使用默认分类
         }
         
-        await todoStore.updateTodo(selectedTodo.value.id.toString(), updateData)
+        await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
         
         // 更新列表中的对应项
         const index = todoStore.state.todoPage.records.findIndex(
-            todo => todo.id === selectedTodo.value?.id
+            todo => todo.id === updatedTodo.id
         )
         if (index !== -1) {
-            todoStore.state.todoPage.records[index] = { ...selectedTodo.value }
+            todoStore.state.todoPage.records[index] = { ...updatedTodo }
         }
+        
+        // 清除选中状态
+        selectedTodo.value = null
     } catch (error) {
         console.error('更新待办失败:', error)
     }
@@ -434,7 +373,6 @@ onMounted(() => {
 /* 描述文本样式 */
 .description-text {
     display: -webkit-box;
-    -webkit-line-clamp: 1; /* 只显示一行 */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

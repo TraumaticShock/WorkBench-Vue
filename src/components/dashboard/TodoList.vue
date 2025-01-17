@@ -89,7 +89,7 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-1">
-                            <button class="btn btn-ghost btn-xs btn-square" @click="handleEdit(todo)">
+                            <button class="btn btn-ghost btn-xs btn-square" @click.stop="handleEdit(todo)">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -116,6 +116,20 @@
         </div>
     </div>
 
+    <!-- 编辑详情 -->
+    <dialog id="edit_modal" class="modal">
+        <div class="modal-box w-11/12 max-w-5xl h-[80vh] p-0 bg-transparent" @click.stop>
+            <TodoDetail
+                :todo="selectedTodo"
+                @save="saveChanges"
+                @cancel="handleModal('edit_modal', 'close')"
+            />
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button @click="selectedTodo = null">关闭</button>
+        </form>
+    </dialog>
+
     <!-- 修改 Modal -->
     <dialog id="description_modal" class="modal" @click="handleModal('description_modal', 'close')">
         <div class="modal-box" @click.stop>
@@ -128,7 +142,7 @@
     </dialog>
 
     <!-- 编辑对话框 -->
-    <TodoEditDialog v-model="showTodoModal" :is-edit="true" :initial-data="currentTodo" @submit="handleSubmit" />
+    <TodoEditDialog v-model="showTodoModal" :is-edit="true" :initial-data="selectedTodo" @submit="saveChanges" />
 
     <!-- 添加删除确认对话框 -->
     <dialog id="delete_confirm_modal" class="modal">
@@ -148,12 +162,13 @@ import { useTodoStore } from '@/stores/todo'
 import type { CreateTodoFormParams, Todo } from '@/types/todo'
 import { ref } from 'vue'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
+import TodoDetail from '@/components/todo/TodoDetail.vue'
 
 const todoStore = useTodoStore()
 const currentDescription = ref('')
 const showTodoModal = ref(false)
 const todoToDelete = ref('')
-const currentTodo = ref<Partial<Todo>>({})
+const selectedTodo = ref<Todo | null>(null)
 
 // 添加当前筛选条件的状态
 const currentFilter = ref({
@@ -217,14 +232,34 @@ const scrollToTop = () => {
 
 // 处理编辑
 const handleEdit = (todo: Todo) => {
-    currentTodo.value = { ...todo }
-    showTodoModal.value = true
+    selectedTodo.value = { ...todo }
+    handleModal('edit_modal', 'show')
 }
 
-const handleSubmit = async (todoData: CreateTodoFormParams) => {
+// 保存更改
+const saveChanges = async (updatedTodo: Todo) => {
     try {
-        await todoStore.updateTodo(currentTodo.value.id!.toString(), todoData)
-        showTodoModal.value = false
+        const updateData = {
+            title: updatedTodo.title,
+            description: updatedTodo.description,
+            priority: updatedTodo.priority,
+            status: updatedTodo.status,
+            dueDate: updatedTodo.dueDate,
+            category: updatedTodo.category || '工作' // 使用默认分类
+        }
+        
+        await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
+        
+        // 更新列表中的对应项
+        const index = todoStore.state.todoPage.records.findIndex(
+            todo => todo.id === updatedTodo.id
+        )
+        if (index !== -1) {
+            todoStore.state.todoPage.records[index] = { ...updatedTodo }
+        }
+        
+        // 清除选中状态
+        selectedTodo.value = null
     } catch (error) {
         console.error('更新待办失败:', error)
     }

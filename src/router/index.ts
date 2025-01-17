@@ -19,6 +19,16 @@ const router = createRouter({
           name: 'Todo',
           component: () => import('@/views/todo/TodoPage.vue'),
         },
+        {
+          path: 'note',
+          name: 'Note',
+          component: () => import('@/views/note/NotePage.vue'),
+        },
+        {
+          path: 'file',
+          name: 'File',
+          component: () => import('@/views/file/FilePage.vue'),
+        },
       ],
     },
     {

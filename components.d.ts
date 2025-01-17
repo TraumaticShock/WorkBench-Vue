@@ -29,6 +29,7 @@ declare module 'vue' {
     SearchBar: typeof import('./src/components/layout/navigation/SearchBar.vue')['default']
     SignUpForm: typeof import('./src/components/auth/SignUpForm.vue')['default']
     ThemeToggle: typeof import('./src/components/layout/navigation/ThemeToggle.vue')['default']
+    TodoDetail: typeof import('./src/components/todo/TodoDetail.vue')['default']
     TodoDistribution: typeof import('./src/components/dashboard/charts/TodoDistribution.vue')['default']
     TodoEditDialog: typeof import('./src/components/todo/TodoEditDialog.vue')['default']
     TodoList: typeof import('./src/components/dashboard/TodoList.vue')['default']

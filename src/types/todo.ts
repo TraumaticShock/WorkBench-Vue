@@ -23,10 +23,11 @@ export interface TodoStatisticsParams {
 // 创建待办表单数据类型
 export interface CreateTodoFormParams {
   title: string;
+  description: string;
   category: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: 'low' | 'medium' | 'high';
+  status: 'completed' | 'pending';
   dueDate: string;
-  description?: string;
 }
 
 // 分页获取待办列表参数类型
