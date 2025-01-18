@@ -29,7 +29,6 @@ const { workDurationWeek } = storeToRefs(workDurationStore);
 
 onMounted(async () => {
     await workDurationStore.getWorkDurationWeek();
-    console.log(workDurationWeek.value);
 });
 
 use([

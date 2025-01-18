@@ -1,60 +1,53 @@
 <template>
     <div class="card bg-base-200 shadow-xl h-full flex flex-col">
         <div class="card-body p-0 flex flex-col h-full">
-            <!-- 工具栏 -->
+            <!-- 顶部工具栏 -->
             <div class="px-6 pt-6 pb-4 border-b border-base-300">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
+                <div class="flex flex-col gap-4">
+                    <!-- 标题和新建按钮 -->
+                    <div class="flex items-center justify-between">
                         <div class="flex items-center gap-4">
-                            <h2 class="card-title text-sm">待办列表</h2>
-                            <div class="flex items-center gap-2 text-xs">
-                                <div class="flex items-center gap-1">
-                                    <div class="badge badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount || 0 }}</div>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="handleTagClick({ priority: 'high' })">紧急 {{
-                                            todoStore.state.stats.urgentCount || 0 }}</div>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="handleTagClick({ priority: 'medium' })">重要 {{
-                                            todoStore.state.stats.importantCount || 0 }}
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <div class="badge badge-accent badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="handleTagClick({ priority: 'low' })">一般 {{
-                                            todoStore.state.stats.normalCount || 0 }}</div>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <div class="badge badge-success badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="handleTagClick({ status: 'completed' })">已完成 {{
-                                            todoStore.state.stats.completeCount || 0 }}
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <div class="badge badge-secondary badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                        @click="handleTagClick({ status: 'pending' })">未完成 {{
-                                            todoStore.state.stats.uncompleteCount || 0 }}
-                                    </div>
-                                </div>
+                            <h2 class="card-title">我的待办</h2>
+                            <div class="flex items-center gap-1 text-xs">
+                                <div class="badge badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                    @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount || 0 }}</div>
+                                <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                    @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount || 0 }}</div>
+                                <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                    @click="handleTagClick({ priority: 'medium' })">重要 {{ todoStore.state.stats.importantCount || 0 }}</div>
+                                <div class="badge badge-accent badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                    @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount || 0 }}</div>
+                                <div class="badge badge-success badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                    @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount || 0 }}</div>
+                                <div class="badge badge-secondary badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                    @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount || 0 }}</div>
                             </div>
                         </div>
+                        <button class="btn btn-primary gap-2" @click="selectedTodo = {}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            新建待办
+                        </button>
                     </div>
-                    <button class="btn btn-primary btn-sm" @click="showTodoModal = true">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        新建待办
-                    </button>
+                    <!-- 搜索和筛选 -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex-1 relative">
+                            <input type="text" 
+                                placeholder="搜索待办..." 
+                                class="input input-bordered w-full pl-10" 
+                                v-model="searchQuery"
+                                @input="handleSearch" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 待办列表 -->
-            <div class="overflow-y-auto px-6 flex-1 min-h-0" ref="scrollContainer" id="scrollContainer">
+            <div class="overflow-y-auto px-6 py-4 flex-1 min-h-0" ref="scrollContainer" id="scrollContainer">
                 <!-- 使用 flex 布局平分宽度和高度 -->
                 <div class="flex gap-6 h-full">
                     <!-- 待办列表部分 -->
@@ -117,51 +110,22 @@
                                     </button>
                                 </div>
                             </div>
-                            <!-- 分页部分 -->
-                            <div class="py-2 border-t border-base-300 flex items-center justify-center gap-2 mt-4">
-                                <button class="btn btn-xs btn-ghost" :disabled="todoStore.state.todoPage.current === 1"
-                                    @click="changePage(todoStore.state.todoPage.current - 1)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 19l-7-7 7-7" />
-                                    </svg>
-                                </button>
-                                <span class="text-xs opacity-50">第 {{ todoStore.state.todoPage.current }} / {{
-                                    todoStore.state.todoPage.pages }}
-                                    页</span>
-                                <button class="btn btn-xs btn-ghost"
-                                    :disabled="todoStore.state.todoPage.current === todoStore.state.todoPage.pages"
-                                    @click="changePage(todoStore.state.todoPage.current + 1)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 5l7 7-7 7" />
-                                    </svg>
-                                </button>
-                                <!-- 添加页面跳转功能 -->
-                                <div class="flex items-center gap-2 ml-4">
-                                    <span class="text-xs opacity-50">跳转到</span>
-                                    <input type="number" class="input input-xs input-bordered w-14" v-model="jumpPage"
-                                        min="1" :max="todoStore.state.todoPage.pages" @keyup.enter="handleJump">
-                                    <button class="btn btn-xs btn-primary" @click="handleJump"
-                                        :disabled="!isValidJumpPage">
-                                        跳转
-                                    </button>
-                                </div>
+                            <!-- 分页控制 -->
+                            <div class="flex justify-center mt-4">
+                                <Pagination 
+                                    v-model:current="todoStore.state.todoPage.current"
+                                    :total="todoStore.state.todoPage.pages"
+                                    @update:current="changePage" />
                             </div>
                         </template>
                     </div>
                     <!-- 待办详情部分 -->
-                    <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="selectedTodo = null"
-                        class="w-11/12 max-w-3xl" />
+                    <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="handleModal('edit_modal', 'close')"
+                        class="w-11/12 max-w-3xl h-[calc(100%-3rem)]" />
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- 待办编辑对话框 -->
-    <TodoEditDialog v-model="showTodoModal" @submit="handleSubmit" />
 
     <!-- 添加删除确认对话框 -->
     <dialog id="delete_confirm_modal" class="modal">
@@ -179,16 +143,15 @@
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
 import type { CreateTodoFormParams, Todo } from '@/types/todo'
-import { ref, onMounted, computed } from 'vue'
-import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
+import Pagination from '@/components/common/Pagination.vue'
 
 const todoStore = useTodoStore()
-const showTodoModal = ref(false)
 const loading = ref(false)
 const jumpPage = ref(1)
 const todoToDelete = ref('')
-const selectedTodo = ref<Todo | null>(null)
+const selectedTodo = ref<Todo | Partial<Todo> | null>(null)
 const categories = ref([
     { id: '1', name: '工作' },
     { id: '2', name: '生活' },
@@ -230,7 +193,8 @@ const fetchTodoList = async (page = 1) => {
             page,
             size: 10,
             ...currentFilter.value,
-            append: false // 明确指定不使用追加模式
+            search: searchQuery.value, // 添加搜索参数
+            append: false
         })
     } catch (error) {
         console.error('获取待办列表失败:', error)
@@ -256,7 +220,7 @@ const getPriorityText = (priority: string) =>
 const handleSubmit = async (todoData: CreateTodoFormParams) => {
     try {
         await todoStore.createTodo(todoData)
-        showTodoModal.value = false
+        handleModal('todo_modal', 'close')
         await todoStore.refreshAllTodoData()
     } catch (error) {
         console.error('创建待办失败:', error)
@@ -327,25 +291,53 @@ const saveChanges = async (updatedTodo: Todo) => {
             priority: updatedTodo.priority,
             status: updatedTodo.status,
             dueDate: updatedTodo.dueDate,
-            category: updatedTodo.category || '工作' // 使用默认分类
+            category: updatedTodo.category || '工作'
         }
 
-        await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
-
-        // 更新列表中的对应项
-        const index = todoStore.state.todoPage.records.findIndex(
-            todo => todo.id === updatedTodo.id
-        )
-        if (index !== -1) {
-            todoStore.state.todoPage.records[index] = { ...updatedTodo }
+        if (updatedTodo.id) {
+            // 更新现有待办
+            await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
+            
+            // 更新列表中的对应项
+            const index = todoStore.state.todoPage.records.findIndex(
+                todo => todo.id === updatedTodo.id
+            )
+            if (index !== -1) {
+                todoStore.state.todoPage.records[index] = { ...updatedTodo }
+            }
+        } else {
+            // 创建新待办
+            await todoStore.createTodo(updateData)
+            await todoStore.refreshAllTodoData()
         }
 
         // 清除选中状态
         selectedTodo.value = null
     } catch (error) {
-        console.error('更新待办失败:', error)
+        console.error('保存待办失败:', error)
     }
 }
+
+const searchQuery = ref('')
+const searchTimeout = ref<number | null>(null)
+
+// 处理搜索
+const handleSearch = () => {
+    // 清除之前的定时器
+    if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
+    }
+
+    // 设置新的定时器，300ms 后执行搜索
+    searchTimeout.value = window.setTimeout(async () => {
+        await fetchTodoList(1)
+    }, 300)
+}
+
+// 监听搜索词变化
+watch(searchQuery, () => {
+    handleSearch()
+})
 
 onMounted(() => {
     fetchTodoList()

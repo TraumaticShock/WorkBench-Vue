@@ -37,6 +37,7 @@ export interface TodoPageParams {
   status?: string;
   priority?: string;
   category?: string;
+  search?: string;  // 搜索关键词
 }
 
 // 添加分页数据类型

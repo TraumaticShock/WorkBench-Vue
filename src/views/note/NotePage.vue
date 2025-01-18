@@ -139,19 +139,12 @@
                     </div>
                 </div>
 
-                <!-- 分页 -->
-                <div v-if="noteStore.state.notePage.records.length" class="flex justify-center mt-8">
-                    <div class="join">
-                        <button class="join-item btn btn-sm" 
-                            :disabled="noteStore.state.notePage.current === 1"
-                            @click="changePage(noteStore.state.notePage.current - 1)">«</button>
-                        <button class="join-item btn btn-sm">
-                            {{ noteStore.state.notePage.current }} / {{ noteStore.state.notePage.pages }}
-                        </button>
-                        <button class="join-item btn btn-sm"
-                            :disabled="noteStore.state.notePage.current === noteStore.state.notePage.pages"
-                            @click="changePage(noteStore.state.notePage.current + 1)">»</button>
-                    </div>
+                <!-- 分页控制 -->
+                <div class="flex justify-center mt-4">
+                    <Pagination 
+                        v-model:current="noteStore.state.notePage.current"
+                        :total="noteStore.state.notePage.pages"
+                        @update:current="changePage" />
                 </div>
             </div>
         </div>
@@ -177,6 +170,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNoteStore } from '@/stores/note'
+import Pagination from '@/components/common/Pagination.vue'
 
 const router = useRouter()
 const noteStore = useNoteStore()

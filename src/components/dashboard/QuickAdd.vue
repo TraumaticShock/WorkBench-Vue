@@ -4,7 +4,7 @@
             <h2 class="card-title text-sm">快速添加</h2>
             <div class="flex flex-col gap-2">
                 <div class="flex items-center gap-2">
-                    <button class="btn btn-primary flex-1" @click="showTodoModal = true">
+                    <button class="btn btn-primary flex-1" @click="handleNewTodo">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -23,28 +23,49 @@
             </div>
         </div>
 
-        <!-- 待办编辑对话框 -->
-        <TodoEditDialog v-model="showTodoModal" @submit="handleSubmit" />
+        <!-- 新建待办对话框 -->
+        <dialog id="todo_modal" class="modal">
+            <div class="modal-box w-11/12 max-w-xl h-[80vh] p-0 bg-transparent" @click.stop>
+                <TodoDetail :todo="{}" @save="handleSubmit" @cancel="handleModal('todo_modal', 'close')" />
+            </div>
+            <form method="dialog" class="modal-backdrop">
+                <button>关闭</button>
+            </form>
+        </dialog>
     </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
+import TodoDetail from '@/components/todo/TodoDetail.vue'
 import { useTodoStore } from '@/stores/todo'
 import type { CreateTodoFormParams } from '@/types/todo'
 
 const todoStore = useTodoStore()
-const showTodoModal = ref(false)
+
+// 统一的 Modal 处理方法
+const handleModal = (modalId: string, action: 'show' | 'close') => {
+    const modal = document.getElementById(modalId) as HTMLDialogElement
+    if (action === 'show') {
+        modal?.showModal()
+    } else {
+        modal?.close()
+    }
+}
 
 const handleSubmit = async (todoData: CreateTodoFormParams) => {
     try {
-        await todoStore.createTodo(todoData);
-        showTodoModal.value = false;
+        await todoStore.createTodo(todoData)
+        handleModal('todo_modal', 'close')
     } catch (error: any) {
-        console.error('创建待办失败:', error);
-        ElMessage.error(error.message || '创建待办失败');
+        console.error('创建待办失败:', error)
+        ElMessage.error(error.message || '创建待办失败')
     }
-};
+}
+
+// 监听新建待办按钮点击
+const handleNewTodo = () => {
+    handleModal('todo_modal', 'show')
+}
 </script>
