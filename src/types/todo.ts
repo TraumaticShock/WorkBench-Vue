@@ -13,7 +13,7 @@ export interface Todo {
 
 // 待办事项统计参数类型
 export interface TodoStatisticsParams {
-  unit: 'day' | 'week' | 'category';
+  unit: 'day' | 'week' | 'category' | 'priority';
   date?: string | null;
   status?: string | null;
   priority?: string | null;
@@ -32,12 +32,12 @@ export interface CreateTodoFormParams {
 
 // 分页获取待办列表参数类型
 export interface TodoPageParams {
-  page: number;
-  size: number;
+  page?: number;
+  size?: number;
   status?: string;
   priority?: string;
-  category?: string;
-  search?: string;  // 搜索关键词
+  search?: string;
+  append?: boolean;
 }
 
 // 添加分页数据类型

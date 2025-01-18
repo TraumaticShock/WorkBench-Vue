@@ -6,38 +6,27 @@
                 <div class="flex items-center gap-4">
                     <h2 class="card-title text-sm">待办列表</h2>
                     <div class="flex items-center gap-2 text-xs">
-                        <div class="flex items-center gap-1">
-                            <div class="badge badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount }}</div>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount }}
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ priority: 'medium' })">重要 {{
-                                    todoStore.state.stats.importantCount }}</div>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <div class="badge badge-accent badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount }}
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <div class="badge badge-success badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ status: 'completed' })">已完成 {{
-                                    todoStore.state.stats.completeCount }}</div>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <div class="badge badge-secondary badge-outline badge-sm cursor-pointer hover:opacity-80"
-                                @click="handleTagClick({ status: 'pending' })">未完成 {{
-                                    todoStore.state.stats.uncompleteCount }}</div>
-                        </div>
+                        <div class="badge badge-sm cursor-pointer hover:opacity-80"
+                            :class="[!currentFilter.status && !currentFilter.priority ? 'badge-neutral text-base-100' : 'badge-outline']"
+                            @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount }}</div>
+                        <div class="badge badge-error badge-sm cursor-pointer hover:opacity-80"
+                            :class="[currentFilter.priority === 'high' ? 'text-base-100' : 'badge-outline']"
+                            @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount }}</div>
+                        <div class="badge badge-warning badge-sm cursor-pointer hover:opacity-80"
+                            :class="[currentFilter.priority === 'medium' ? 'text-base-100' : 'badge-outline']"
+                            @click="handleTagClick({ priority: 'medium' })">重要 {{ todoStore.state.stats.importantCount }}</div>
+                        <div class="badge badge-accent badge-sm cursor-pointer hover:opacity-80"
+                            :class="[currentFilter.priority === 'low' ? 'text-base-100' : 'badge-outline']"
+                            @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount }}</div>
+                        <div class="badge badge-success badge-sm cursor-pointer hover:opacity-80"
+                            :class="[currentFilter.status === 'completed' ? 'text-base-100' : 'badge-outline']"
+                            @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount }}</div>
+                        <div class="badge badge-secondary badge-sm cursor-pointer hover:opacity-80"
+                            :class="[currentFilter.status === 'pending' ? 'text-base-100' : 'badge-outline']"
+                            @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount }}</div>
                     </div>
                 </div>
-                <div class="flex gap-2">
+                <!-- <div class="flex gap-2">
                     <button class="btn btn-sm btn-ghost">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -46,18 +35,17 @@
                         </svg>
                         排序
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
 
-        <!-- 修改内容区域 -->
+        <!-- 待办列表项 -->
         <div class="overflow-y-auto px-6 flex-1 min-h-0" ref="scrollContainer" id="scrollContainer"
             @scroll="handleScroll">
             <!-- 列表容器 -->
             <div class="py-2">
                 <!-- 加载状态和空数据提示 -->
-                <div v-if="todoStore.state.loading && !todoStore.state.todoPage.records.length"
-                    class="text-center py-2">
+                <div v-if="todoStore.state.loading && !todoStore.state.todoPage.records.length" class="text-center py-2">
                     <span class="loading loading-dots loading-md"></span>
                 </div>
                 <div v-else-if="!todoStore.state.todoPage.records.length" class="text-center py-2 text-gray-500">
@@ -124,8 +112,12 @@
 
     <!-- 编辑详情 -->
     <dialog id="edit_modal" class="modal">
-        <div class="modal-box w-11/12 max-w-xl h-[80vh] p-0 bg-transparent" @click.stop>
-            <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="handleModal('edit_modal', 'close')" />
+        <div class="modal-box w-11/12 max-w-5xl h-[80vh] p-0 bg-transparent" @click.stop>
+            <TodoDetail
+                :todo="selectedTodo"
+                @save="saveChanges"
+                @cancel="handleModal('edit_modal', 'close')"
+            />
         </div>
         <form method="dialog" class="modal-backdrop">
             <button @click="selectedTodo = null">关闭</button>
@@ -162,7 +154,7 @@
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
 import type { CreateTodoFormParams, Todo } from '@/types/todo'
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 
@@ -172,14 +164,39 @@ const showTodoModal = ref(false)
 const todoToDelete = ref('')
 const selectedTodo = ref<Todo | null>(null)
 
+onMounted(() => {
+    // 获取待办列表
+    fetchTodoList(1, false)
+})
+
+// 获取待办列表方法
+const fetchTodoList = async (page = 1, append = false) => {
+    if (todoStore.state.loading) return
+
+    try {
+        todoStore.state.loading = true
+        await todoStore.getTodoPage({
+            page,
+            size: 10,
+            ...currentFilter.value,
+            append
+        })
+    } catch (error) {
+        console.error('获取待办列表失败:', error)
+    } finally {
+        todoStore.state.loading = false
+    }
+}
+
 // 添加当前筛选条件的状态
 const currentFilter = ref({
-    status: undefined as string | undefined,
+    status: 'pending' as string | undefined,
     priority: undefined as string | undefined
 })
 
 // 统一的标签切换处理方法
 const handleTagClick = async (filter: { status?: string | undefined, priority?: string | undefined }) => {
+    await todoStore.initTodoPage()
     currentFilter.value = {
         status: filter.status ?? undefined,
         priority: filter.priority ?? undefined
@@ -198,23 +215,6 @@ const handleModal = (modalId: string, action: 'show' | 'close') => {
     }
 }
 
-// 修改获取待办列表方法
-const fetchTodoList = async (page = 1, append = false) => {
-    if (todoStore.state.loading || (!append && !todoStore.state.hasMore)) return
-
-    try {
-        todoStore.state.loading = true
-        await todoStore.getTodoPage({
-            page,
-            size: 10,
-            ...currentFilter.value,
-            append: true
-        })
-    } catch (error) {
-        console.error('获取待办列表失败:', error)
-    }
-}
-
 // 优先级相关的常量
 const PRIORITY_CONFIG = {
     high: { class: 'badge-error', text: '紧急' },
@@ -222,10 +222,10 @@ const PRIORITY_CONFIG = {
     low: { class: 'badge-info', text: '一般' }
 } as const
 
-const getPriorityClass = (priority: string) =>
+const getPriorityClass = (priority: string) => 
     PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.class || 'badge-ghost'
 
-const getPriorityText = (priority: string) =>
+const getPriorityText = (priority: string) => 
     PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.text || priority
 
 const scrollToTop = () => {
@@ -247,21 +247,12 @@ const saveChanges = async (updatedTodo: Todo) => {
             priority: updatedTodo.priority,
             status: updatedTodo.status,
             dueDate: updatedTodo.dueDate,
-            category: updatedTodo.category || '工作' // 使用默认分类
+            category: updatedTodo.category || '工作'
         }
-
+        
         await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
-
-        // 更新列表中的对应项
-        const index = todoStore.state.todoPage.records.findIndex(
-            todo => todo.id === updatedTodo.id
-        )
-        if (index !== -1) {
-            todoStore.state.todoPage.records[index] = { ...updatedTodo }
-        }
-
-        // 清除选中状态
         selectedTodo.value = null
+        handleModal('edit_modal', 'close')
     } catch (error) {
         console.error('更新待办失败:', error)
     }
@@ -275,8 +266,8 @@ const openDescription = (description: string) => {
 const handleScroll = async (e: Event) => {
     const target = e.target as HTMLElement
     const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight
-
-    if (scrollBottom < 50 && !todoStore.state.loading && todoStore.state.hasMore) {
+    
+    if (scrollBottom < 50 && !todoStore.state.loading && todoStore.state.todoPage.pages > todoStore.state.todoPage.current) {
         await fetchTodoList(todoStore.state.todoPage.current + 1, true)
     }
 }
@@ -297,8 +288,7 @@ const confirmDelete = async () => {
 
 const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
     try {
-        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
-        await todoStore.updateTodo(id, { status: newStatus } as any)
+        await todoStore.toggleTodoStatus(id, currentStatus)
     } catch (error) {
         console.error('更新待办状态失败:', error)
     }

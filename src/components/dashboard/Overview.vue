@@ -16,10 +16,6 @@ const { workDuration } = storeToRefs(workDurationStore);
         <div class="stat">
             <div class="stat-title">今日待办</div>
             <div class="stat-value">{{ state.stats.todayCount }}</div>
-            <div class="stat-desc">
-                {{ state.stats.todayCount - state.stats.yesterdayCount > 0 ? '↗︎' : '↘︎' }}
-                {{ Math.abs(state.stats.todayCount - state.stats.yesterdayCount) }} 个比昨天
-            </div>
         </div>
         <div class="stat">
             <div class="stat-title">已完成</div>

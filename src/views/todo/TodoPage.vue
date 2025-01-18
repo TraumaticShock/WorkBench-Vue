@@ -9,17 +9,23 @@
                         <div class="flex items-center gap-4">
                             <h2 class="card-title">我的待办</h2>
                             <div class="flex items-center gap-1 text-xs">
-                                <div class="badge badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                <div class="badge badge-sm cursor-pointer hover:opacity-80"
+                                    :class="[!currentFilter.status && !currentFilter.priority ? 'badge-neutral text-base-100' : 'badge-outline']"
                                     @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount || 0 }}</div>
-                                <div class="badge badge-error badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                <div class="badge badge-error badge-sm cursor-pointer hover:opacity-80"
+                                    :class="[currentFilter.priority === 'high' ? 'text-base-100' : 'badge-outline']"
                                     @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount || 0 }}</div>
-                                <div class="badge badge-warning badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                <div class="badge badge-warning badge-sm cursor-pointer hover:opacity-80"
+                                    :class="[currentFilter.priority === 'medium' ? 'text-base-100' : 'badge-outline']"
                                     @click="handleTagClick({ priority: 'medium' })">重要 {{ todoStore.state.stats.importantCount || 0 }}</div>
-                                <div class="badge badge-accent badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                <div class="badge badge-accent badge-sm cursor-pointer hover:opacity-80"
+                                    :class="[currentFilter.priority === 'low' ? 'text-base-100' : 'badge-outline']"
                                     @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount || 0 }}</div>
-                                <div class="badge badge-success badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                <div class="badge badge-success badge-sm cursor-pointer hover:opacity-80"
+                                    :class="[currentFilter.status === 'completed' ? 'text-base-100' : 'badge-outline']"
                                     @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount || 0 }}</div>
-                                <div class="badge badge-secondary badge-outline badge-sm cursor-pointer hover:opacity-80"
+                                <div class="badge badge-secondary badge-sm cursor-pointer hover:opacity-80"
+                                    :class="[currentFilter.status === 'pending' ? 'text-base-100' : 'badge-outline']"
                                     @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount || 0 }}</div>
                             </div>
                         </div>
@@ -67,7 +73,7 @@
                                 @click="selectTodo(todo)">
                                 <input type="checkbox" :checked="todo.status === 'completed'"
                                     class="checkbox checkbox-sm"
-                                    @change="toggleTodo(todo.id.toString(), todo.status)" />
+                                    @change="toggleTodo(todo.id.toString(), todo.status, $event)" />
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="truncate flex-shrink"
@@ -142,25 +148,19 @@
 
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
-import type { CreateTodoFormParams, Todo } from '@/types/todo'
-import { ref, onMounted, computed, watch } from 'vue'
+import type { Todo } from '@/types/todo'
+import { ref, onMounted, watch } from 'vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
 
 const todoStore = useTodoStore()
 const loading = ref(false)
-const jumpPage = ref(1)
 const todoToDelete = ref('')
 const selectedTodo = ref<Todo | Partial<Todo> | null>(null)
-const categories = ref([
-    { id: '1', name: '工作' },
-    { id: '2', name: '生活' },
-    { id: '3', name: '学习' }
-]);
 
 // 添加当前筛选条件的状态
 const currentFilter = ref({
-    status: undefined as string | undefined,
+    status: 'pending' as string | undefined,
     priority: undefined as string | undefined
 })
 
@@ -193,8 +193,7 @@ const fetchTodoList = async (page = 1) => {
             page,
             size: 10,
             ...currentFilter.value,
-            search: searchQuery.value, // 添加搜索参数
-            append: false
+            search: searchQuery.value
         })
     } catch (error) {
         console.error('获取待办列表失败:', error)
@@ -215,17 +214,6 @@ const getPriorityClass = (priority: string) =>
 
 const getPriorityText = (priority: string) =>
     PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.text || priority
-
-// 处理创建待办
-const handleSubmit = async (todoData: CreateTodoFormParams) => {
-    try {
-        await todoStore.createTodo(todoData)
-        handleModal('todo_modal', 'close')
-        await todoStore.refreshAllTodoData()
-    } catch (error) {
-        console.error('创建待办失败:', error)
-    }
-}
 
 // 处理删除
 const handleDelete = (id: string) => {
@@ -249,12 +237,37 @@ const confirmDelete = async () => {
 }
 
 // 切换待办状态
-const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
+const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending', event: Event) => {
     try {
+        event.stopPropagation() // 阻止事件冒泡
         const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
+        
+        // 先在前端更新状态，提供即时反馈
+        const index = todoStore.state.todoPage.records.findIndex(todo => todo.id.toString() === id)
+        if (index !== -1) {
+            if (currentFilter.value.status) {
+                // 如果在特定状态标签下，移除该项
+                todoStore.state.todoPage.records.splice(index, 1)
+            } else {
+                // 否则直接更新状态
+                todoStore.state.todoPage.records[index].status = newStatus
+            }
+        }
+
+        // 后端更新
         await todoStore.updateTodo(id, { status: newStatus } as any)
+        
+        // 如果当前页没有数据了且不是第一页，则加载上一页
+        if (todoStore.state.todoPage.records.length === 0 && todoStore.state.todoPage.current > 1) {
+            await fetchTodoList(todoStore.state.todoPage.current - 1)
+        }
+        
+        // 只更新统计数据
+        await todoStore.refreshStats()
     } catch (error) {
         console.error('更新待办状态失败:', error)
+        // 如果失败，恢复原状态
+        await fetchTodoList(todoStore.state.todoPage.current)
     }
 }
 
@@ -262,19 +275,6 @@ const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') =>
 const changePage = async (page: number) => {
     if (page < 1 || page > todoStore.state.todoPage.pages) return
     await fetchTodoList(page)
-}
-
-// 判断跳转页码是否有效
-const isValidJumpPage = computed(() => {
-    const page = Number(jumpPage.value)
-    return page >= 1 && page <= todoStore.state.todoPage.pages
-})
-
-// 处理跳转
-const handleJump = () => {
-    if (isValidJumpPage.value) {
-        changePage(Number(jumpPage.value))
-    }
 }
 
 // 选择待办
@@ -307,10 +307,15 @@ const saveChanges = async (updatedTodo: Todo) => {
             }
         } else {
             // 创建新待办
-            await todoStore.createTodo(updateData)
-            await todoStore.refreshAllTodoData()
+            const result = await todoStore.createTodo(updateData)
+            // 如果是在第一页，将新创建的待办添加到列表开头
+            if (todoStore.state.todoPage.current === 1) {
+                todoStore.state.todoPage.records.unshift(result)
+            }
         }
 
+        // 只更新统计数据
+        await todoStore.refreshStats()
         // 清除选中状态
         selectedTodo.value = null
     } catch (error) {
@@ -341,7 +346,7 @@ watch(searchQuery, () => {
 
 onMounted(() => {
     fetchTodoList()
-    todoStore.refreshAllTodoData()
+    todoStore.refreshStats()
 })
 </script>
 

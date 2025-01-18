@@ -15,7 +15,7 @@ const todoStore = useTodoStore();
 onMounted(async () => {
   // 初始化获取今天的工作时长
   await workDurationStore.getWorkDurationToday();
-  await todoStore.refreshAllTodoData();
+  await todoStore.refreshStats();
 });
 
 // 监听页面关闭或者刷新
