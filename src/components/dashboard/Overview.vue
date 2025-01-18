@@ -12,27 +12,64 @@ const { workDuration } = storeToRefs(workDurationStore);
 </script>
 
 <template>
-    <div class="stats shadow w-full bg-base-200 mb-6">
-        <div class="stat">
-            <div class="stat-title">今日待办</div>
-            <div class="stat-value">{{ state.stats.todayCount }}</div>
+    <div class="card bg-base-100 shadow-xl relative overflow-hidden h-[200px]">
+        <div class="absolute top-0 left-0 right-0 h-12 bg-gradient-to-r from-neutral to-neutral/70">
+            <div class="flex items-center justify-between h-full px-6">
+                <h2 class="text-xl font-semibold text-white">数据概览</h2>
+            </div>
         </div>
-        <div class="stat">
-            <div class="stat-title">已完成</div>
-            <div class="stat-value text-success">{{ state.stats.completeCount }}</div>
-        </div>
-        <div class="stat">
-            <div class="stat-title">笔记总数</div>
-            <div class="stat-value">23</div>
-            <div class="stat-desc">本月新增 5 篇</div>
-        </div>
-        <div class="stat">
-            <div class="stat-title">工作时长</div>
-            <div class="stat-value text-primary flex items-center gap-2">
-                {{ workDurationStore.formatDuration(workDuration?.duration || 0) }}
+        <div class="card-body pt-16">
+            <div class="grid grid-cols-4 gap-4">
+                <div class="stat bg-base-200/50 rounded-xl">
+                    <div class="stat-title">今日待办</div>
+                    <div class="stat-value">{{ state.stats.todayCount }}</div>
+                </div>
+                <div class="stat bg-base-200/50 rounded-xl">
+                    <div class="stat-title">已完成</div>
+                    <div class="stat-value text-success">{{ state.stats.completeCount }}</div>
+                </div>
+                <div class="stat bg-base-200/50 rounded-xl">
+                    <div class="stat-title">笔记总数</div>
+                    <div class="stat-value">23</div>
+                    <div class="stat-desc">本月新增 5 篇</div>
+                </div>
+                <div class="stat bg-base-200/50 rounded-xl">
+                    <div class="stat-title">工作时长</div>
+                    <div class="stat-value text-primary flex items-center gap-2">
+                        {{ workDurationStore.formatDuration(workDuration?.duration || 0) }}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.card {
+    border-radius: 1rem;
+}
+
+.stat {
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+</style>

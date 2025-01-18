@@ -29,6 +29,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SearchBar: typeof import('./src/components/layout/navigation/SearchBar.vue')['default']
     SignUpForm: typeof import('./src/components/auth/SignUpForm.vue')['default']
+    StatCard: typeof import('./src/components/dashboard/StatCard.vue')['default']
     ThemeToggle: typeof import('./src/components/layout/navigation/ThemeToggle.vue')['default']
     TodoDetail: typeof import('./src/components/todo/TodoDetail.vue')['default']
     TodoDistribution: typeof import('./src/components/dashboard/charts/TodoDistribution.vue')['default']

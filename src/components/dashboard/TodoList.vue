@@ -1,97 +1,82 @@
 <template>
-    <div class="card bg-base-200 shadow-xl h-[400px] flex flex-col">
-        <!-- 固定的头部 -->
-        <div class="p-6 pb-2 flex-none">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-4">
-                    <h2 class="card-title text-sm">待办列表</h2>
-                    <div class="flex items-center gap-2 text-xs">
-                        <div class="badge badge-sm cursor-pointer hover:opacity-80"
-                            :class="[!currentFilter.status && !currentFilter.priority ? 'badge-neutral text-base-100' : 'badge-outline']"
-                            @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount }}</div>
-                        <div class="badge badge-error badge-sm cursor-pointer hover:opacity-80"
-                            :class="[currentFilter.priority === 'high' ? 'text-base-100' : 'badge-outline']"
-                            @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount }}</div>
-                        <div class="badge badge-warning badge-sm cursor-pointer hover:opacity-80"
-                            :class="[currentFilter.priority === 'medium' ? 'text-base-100' : 'badge-outline']"
-                            @click="handleTagClick({ priority: 'medium' })">重要 {{ todoStore.state.stats.importantCount }}</div>
-                        <div class="badge badge-accent badge-sm cursor-pointer hover:opacity-80"
-                            :class="[currentFilter.priority === 'low' ? 'text-base-100' : 'badge-outline']"
-                            @click="handleTagClick({ priority: 'low' })">一般 {{ todoStore.state.stats.normalCount }}</div>
-                        <div class="badge badge-success badge-sm cursor-pointer hover:opacity-80"
-                            :class="[currentFilter.status === 'completed' ? 'text-base-100' : 'badge-outline']"
-                            @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount }}</div>
-                        <div class="badge badge-secondary badge-sm cursor-pointer hover:opacity-80"
-                            :class="[currentFilter.status === 'pending' ? 'text-base-100' : 'badge-outline']"
-                            @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount }}</div>
+    <div class="card bg-base-100 shadow-xl h-[400px] relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-12 bg-gradient-to-r from-neutral to-neutral/70">
+            <div class="flex items-center justify-between h-full px-6">
+                <h2 class="text-xl font-semibold text-white">待办列表</h2>
+                <div class="flex items-center gap-2 text-white">
+                    <div class="badge badge-sm cursor-pointer hover:opacity-80"
+                        :class="[!currentFilter.status && !currentFilter.priority ? 'badge-neutral text-base-100' : 'badge-outline']"
+                        @click="handleTagClick({})">全部 {{ todoStore.state.stats.totalCount }}</div>
+                    <div class="badge badge-error badge-sm cursor-pointer hover:opacity-80"
+                        :class="[currentFilter.priority === 'high' ? 'text-base-100' : 'badge-outline']"
+                        @click="handleTagClick({ priority: 'high' })">紧急 {{ todoStore.state.stats.urgentCount }}</div>
+                    <div class="badge badge-success badge-sm cursor-pointer hover:opacity-80"
+                        :class="[currentFilter.status === 'completed' ? 'text-base-100' : 'badge-outline']"
+                        @click="handleTagClick({ status: 'completed' })">已完成 {{ todoStore.state.stats.completeCount }}
+                    </div>
+                    <div class="badge badge-warning badge-sm cursor-pointer hover:opacity-80"
+                        :class="[currentFilter.status === 'pending' ? 'text-base-100' : 'badge-outline']"
+                        @click="handleTagClick({ status: 'pending' })">未完成 {{ todoStore.state.stats.uncompleteCount }}
                     </div>
                 </div>
-                <!-- <div class="flex gap-2">
-                    <button class="btn btn-sm btn-ghost">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                        </svg>
-                        排序
-                    </button>
-                </div> -->
             </div>
         </div>
+        <div class="card-body h-full flex flex-col pt-16 p-0">
+            <!-- 待办列表项 -->
+            <div class="overflow-y-auto px-6 flex-1 min-h-0" ref="scrollContainer" id="scrollContainer"
+                @scroll="handleScroll">
+                <!-- 列表容器 -->
+                <div class="py-2">
+                    <!-- 加载状态和空数据提示 -->
+                    <div v-if="todoStore.state.loading && !todoStore.state.todoPage.records.length"
+                        class="text-center py-2">
+                        <span class="loading loading-dots loading-md"></span>
+                    </div>
+                    <div v-else-if="!todoStore.state.todoPage.records.length" class="text-center py-2 text-gray-500">
+                        暂无待办事项
+                    </div>
 
-        <!-- 待办列表项 -->
-        <div class="overflow-y-auto px-6 flex-1 min-h-0" ref="scrollContainer" id="scrollContainer"
-            @scroll="handleScroll">
-            <!-- 列表容器 -->
-            <div class="py-2">
-                <!-- 加载状态和空数据提示 -->
-                <div v-if="todoStore.state.loading && !todoStore.state.todoPage.records.length" class="text-center py-2">
-                    <span class="loading loading-dots loading-md"></span>
-                </div>
-                <div v-else-if="!todoStore.state.todoPage.records.length" class="text-center py-2 text-gray-500">
-                    暂无待办事项
-                </div>
-
-                <!-- 待办列表项 -->
-                <template v-else>
-                    <div v-for="todo in todoStore.state.todoPage.records" :key="todo.id"
-                        class="mb-2 last:mb-0 flex items-center gap-3 p-3 bg-base-100 rounded-lg hover:bg-base-300 transition-colors">
-                        <input type="checkbox" :checked="todo.status === 'completed'" class="checkbox checkbox-sm"
-                            @change="toggleTodo(todo.id.toString(), todo.status)" />
-                        <div class="flex-1">
-                            <div class="flex items-center gap-2">
-                                <span :class="{ 'line-through opacity-50': todo.status === 'completed' }">{{ todo.title
-                                    }}</span>
-                                <div v-if="todo.priority" :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
-                                    {{ getPriorityText(todo.priority) }}
+                    <!-- 待办列表项 -->
+                    <template v-else>
+                        <div v-for="todo in todoStore.state.todoPage.records" :key="todo.id"
+                            class="mb-2 last:mb-0 flex items-center gap-3 p-3 bg-base-100 border-2 border-base-200/70 hover:border-base-300 shadow-sm hover:shadow-md transition-all rounded-xl">
+                            <input type="checkbox" :checked="todo.status === 'completed'" class="checkbox checkbox-sm"
+                                @change="toggleTodo(todo.id.toString(), todo.status)" />
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span :class="{ 'line-through opacity-50': todo.status === 'completed' }">{{
+                                        todo.title
+                                        }}</span>
+                                    <div v-if="todo.priority"
+                                        :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
+                                        {{ getPriorityText(todo.priority) }}
+                                    </div>
+                                    <div v-if="todo.category" class="badge badge-ghost badge-sm">
+                                        {{ todo.category }}
+                                    </div>
+                                    <div v-if="todo.dueDate" class="text-xs opacity-50">
+                                        {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
+                                            year: 'numeric', month:
+                                                'long', day: 'numeric'
+                                        }) }}
+                                        {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', { weekday: 'long' }) }}
+                                    </div>
                                 </div>
-                                <div v-if="todo.category" class="badge badge-ghost badge-sm">
-                                    {{ todo.category }}
-                                </div>
-                                <div v-if="todo.dueDate" class="text-xs opacity-50">
-                                    {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
-                                        year: 'numeric', month:
-                                            'long', day: 'numeric'
-                                    }) }}
-                                    {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', { weekday: 'long' }) }}
+                                <div v-if="todo.description"
+                                    class="text-xs opacity-50 mt-1 line-clamp-2 cursor-pointer text-left"
+                                    style="max-height: 2.4em; min-height: 0;"
+                                    @click="openDescription(todo.description)">
+                                    {{ todo.description }}
                                 </div>
                             </div>
-                            <div v-if="todo.description"
-                                class="text-xs opacity-50 mt-1 line-clamp-2 cursor-pointer text-left"
-                                style="max-height: 2.4em; min-height: 0;" @click="openDescription(todo.description)">
-                                {{ todo.description }}
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <button class="btn btn-ghost btn-xs btn-square" @click.stop="handleEdit(todo)">
+                            <button class="btn btn-ghost btn-xs btn-square" @click="handleEdit(todo)">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                             </button>
-                            <button class="btn btn-ghost btn-xs btn-square text-error"
-                                @click="handleDelete(todo.id.toString())">
+                            <button class="btn btn-ghost btn-xs btn-square" @click="handleDelete(todo.id.toString())">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                     stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -99,12 +84,13 @@
                                 </svg>
                             </button>
                         </div>
-                    </div>
-                </template>
+                    </template>
 
-                <!-- 底部加载提示 -->
-                <div v-if="todoStore.state.loading && todoStore.state.todoPage.records.length" class="text-center py-2">
-                    <span class="loading loading-dots loading-md"></span>
+                    <!-- 底部加载提示 -->
+                    <div v-if="todoStore.state.loading && todoStore.state.todoPage.records.length"
+                        class="text-center py-2">
+                        <span class="loading loading-dots loading-md"></span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -112,12 +98,8 @@
 
     <!-- 编辑详情 -->
     <dialog id="edit_modal" class="modal">
-        <div class="modal-box w-11/12 max-w-5xl h-[80vh] p-0 bg-transparent" @click.stop>
-            <TodoDetail
-                :todo="selectedTodo"
-                @save="saveChanges"
-                @cancel="handleModal('edit_modal', 'close')"
-            />
+        <div class="modal-box max-w-2xl p-0 bg-transparent h-[80vh]" @click.stop>
+            <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="handleModal('edit_modal', 'close')" />
         </div>
         <form method="dialog" class="modal-backdrop">
             <button @click="selectedTodo = null">关闭</button>
@@ -222,10 +204,10 @@ const PRIORITY_CONFIG = {
     low: { class: 'badge-info', text: '一般' }
 } as const
 
-const getPriorityClass = (priority: string) => 
+const getPriorityClass = (priority: string) =>
     PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.class || 'badge-ghost'
 
-const getPriorityText = (priority: string) => 
+const getPriorityText = (priority: string) =>
     PRIORITY_CONFIG[priority as keyof typeof PRIORITY_CONFIG]?.text || priority
 
 const scrollToTop = () => {
@@ -249,7 +231,7 @@ const saveChanges = async (updatedTodo: Todo) => {
             dueDate: updatedTodo.dueDate,
             category: updatedTodo.category || '工作'
         }
-        
+
         await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
         selectedTodo.value = null
         handleModal('edit_modal', 'close')
@@ -266,7 +248,7 @@ const openDescription = (description: string) => {
 const handleScroll = async (e: Event) => {
     const target = e.target as HTMLElement
     const scrollBottom = target.scrollHeight - target.scrollTop - target.clientHeight
-    
+
     if (scrollBottom < 50 && !todoStore.state.loading && todoStore.state.todoPage.pages > todoStore.state.todoPage.current) {
         await fetchTodoList(todoStore.state.todoPage.current + 1, true)
     }
@@ -297,31 +279,26 @@ const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') =>
 </script>
 
 <style scoped>
-/* 添加美化的滚动条样式 */
-.overflow-y-auto::-webkit-scrollbar {
-    width: 6px;
+.card {
+    border-radius: 1rem;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
+::-webkit-scrollbar-thumb {
+    background: #ddd;
     border-radius: 3px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.3);
-}
-
-/* 添加描述文本的样式 */
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
+::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
 }
 </style>

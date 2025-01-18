@@ -136,12 +136,43 @@ const notePieChartOption = {
 </script>
 
 <template>
-    <div class="card bg-base-200 shadow-xl h-[300px]">
-        <div class="card-body">
-            <h2 class="card-title">笔记分类</h2>
+    <div class="card bg-base-100 shadow-xl h-[300px] relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-12 bg-gradient-to-r from-neutral to-neutral/70">
+            <div class="flex items-center justify-between h-full px-6">
+                <h2 class="text-xl font-semibold text-white">笔记分类</h2>
+            </div>
+        </div>
+        <div class="card-body h-full flex flex-col pt-16">
             <v-chart class="chart-container" :option="notePieChartOption" autoresize />
         </div>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.card {
+    border-radius: 1rem;
+}
+
+:deep(.echarts) {
+    border-radius: 0.5rem;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+</style>

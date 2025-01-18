@@ -1,18 +1,16 @@
 <template>
-    <div class="card bg-base-200 shadow-xl h-[400px]">
-        <div class="card-body">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-4">
-                    <h2 class="card-title text-sm">文件管理</h2>
-                    <div class="flex items-center gap-2 text-xs">
-                        <div class="badge badge-sm">总计 126</div>
-                        <div class="badge badge-info badge-sm">文档 45</div>
-                        <div class="badge badge-success badge-sm">图片 38</div>
-                        <div class="badge badge-warning badge-sm">其他 43</div>
-                    </div>
+    <div class="card bg-base-100 shadow-xl h-[400px] relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-12 bg-gradient-to-r from-neutral to-neutral/70">
+            <div class="flex items-center h-full px-6">
+                <h2 class="text-xl font-semibold text-white">文件管理</h2>
+                <div class="flex items-center gap-2 text-white ml-4">
+                    <div class="badge badge-sm">总计 126</div>
+                    <div class="badge badge-info badge-sm">文档 45</div>
+                    <div class="badge badge-success badge-sm">图片 38</div>
+                    <div class="badge badge-warning badge-sm">其他 43</div>
                 </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-sm btn-ghost">
+                <div class="flex gap-2 ml-auto">
+                    <button class="btn btn-sm btn-ghost text-white hover:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -20,7 +18,7 @@
                         </svg>
                         上传
                     </button>
-                    <button class="btn btn-sm btn-ghost">
+                    <button class="btn btn-sm btn-ghost text-white hover:text-white">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -30,9 +28,11 @@
                     </button>
                 </div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        </div>
+        <div class="card-body h-full flex flex-col pt-16">
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 overflow-y-auto">
                 <div v-for="file in recentFiles" :key="file.id"
-                    class="flex items-center gap-2 p-2 bg-base-100 rounded-lg hover:bg-base-300 transition-colors cursor-pointer">
+                    class="flex items-center gap-2 p-3 bg-base-100 border-2 border-base-200/70 hover:border-base-300 shadow-sm hover:shadow-md transition-all rounded-xl cursor-pointer">
                     <div class="flex-none">
                         <svg v-if="file.type === 'doc'" xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary"
                             fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,3 +114,28 @@ const recentFiles = ref([
     }
 ])
 </script>
+
+<style scoped>
+.card {
+    border-radius: 1rem;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+}
+</style>

@@ -6,7 +6,8 @@
                 <div class="flex items-center justify-between">
                     <h2 class="card-title text-lg font-bold">{{ todo?.id ? '编辑待办' : '新建待办' }}</h2>
                     <div class="flex items-center gap-2">
-                        <button class="btn btn-ghost btn-sm gap-2 hover:bg-error/20 hover:text-error" @click="handleCancel">
+                        <button class="btn btn-ghost btn-sm gap-2 hover:bg-error/20 hover:text-error"
+                            @click="handleCancel">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -39,7 +40,7 @@
                     </div>
 
                     <!-- 描述输入 -->
-                    <div class="form-control w-full flex-1 min-h-0">
+                    <div class="form-control w-full flex-1">
                         <label class="label py-1">
                             <span class="label-text font-medium">描述</span>
                         </label>
@@ -55,13 +56,13 @@
                                 <span class="label-text font-medium">状态</span>
                             </label>
                             <div class="join w-full">
-                                <button class="join-item btn btn-sm flex-1" 
+                                <button class="join-item btn btn-sm flex-1"
                                     :class="{ 'btn-primary': form.status === 'pending' }"
                                     @click="form.status = 'pending'">
                                     <span class="w-2 h-2 rounded-full bg-warning mr-2"></span>
                                     进行中
                                 </button>
-                                <button class="join-item btn btn-sm flex-1" 
+                                <button class="join-item btn btn-sm flex-1"
                                     :class="{ 'btn-primary': form.status === 'completed' }"
                                     @click="form.status = 'completed'">
                                     <span class="w-2 h-2 rounded-full bg-success mr-2"></span>
@@ -76,19 +77,18 @@
                                 <span class="label-text font-medium">优先级</span>
                             </label>
                             <div class="join w-full">
-                                <button class="join-item btn btn-sm flex-1" 
-                                    :class="{ 'btn-primary': form.priority === 'low' }"
-                                    @click="form.priority = 'low'">
+                                <button class="join-item btn btn-sm flex-1"
+                                    :class="{ 'btn-primary': form.priority === 'low' }" @click="form.priority = 'low'">
                                     <span class="w-2 h-2 rounded-full bg-success mr-2"></span>
                                     一般
                                 </button>
-                                <button class="join-item btn btn-sm flex-1" 
+                                <button class="join-item btn btn-sm flex-1"
                                     :class="{ 'btn-primary': form.priority === 'medium' }"
                                     @click="form.priority = 'medium'">
                                     <span class="w-2 h-2 rounded-full bg-warning mr-2"></span>
                                     重要
                                 </button>
-                                <button class="join-item btn btn-sm flex-1" 
+                                <button class="join-item btn btn-sm flex-1"
                                     :class="{ 'btn-primary': form.priority === 'high' }"
                                     @click="form.priority = 'high'">
                                     <span class="w-2 h-2 rounded-full bg-error mr-2"></span>
@@ -106,9 +106,8 @@
                                 <span class="label-text font-medium">分类</span>
                             </label>
                             <div class="join w-full">
-                                <button v-for="category in availableCategories" 
-                                    :key="category"
-                                    class="join-item btn btn-sm flex-1" 
+                                <button v-for="category in availableCategories" :key="category"
+                                    class="join-item btn btn-sm flex-1"
                                     :class="{ 'btn-primary': form.category === category }"
                                     @click="form.category = category">
                                     {{ category }}
@@ -121,7 +120,7 @@
                             <label class="label py-1">
                                 <span class="label-text font-medium">截止日期</span>
                             </label>
-                            <input type="datetime-local" v-model="form.dueDate" 
+                            <input type="datetime-local" v-model="form.dueDate"
                                 class="input input-bordered w-full h-10 min-h-[2.5rem] focus:input-primary transition-colors" />
                         </div>
                     </div>

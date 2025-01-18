@@ -88,10 +88,14 @@ const lineChartOption = computed(() => ({
 </script>
 
 <template>
-    <div class="card bg-base-200 shadow-xl h-[300px]">
-        <div class="card-body h-full flex flex-col">
-            <h2 class="card-title">待办完成趋势</h2>
-            <div v-if="isLoading" class="flex items-center justify-center">
+    <div class="card bg-base-100 shadow-xl h-[300px] relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-12 bg-gradient-to-r from-neutral to-neutral/70">
+            <div class="flex items-center justify-between h-full px-6">
+                <h2 class="text-xl font-semibold text-white">待办完成趋势</h2>
+            </div>
+        </div>
+        <div class="card-body h-full flex flex-col pt-16">
+            <div v-if="isLoading" class="flex items-center justify-center flex-1">
                 <span class="loading loading-spinner loading-lg"></span>
             </div>
             <v-chart v-else class="chart-container" :option="lineChartOption" autoresize />
