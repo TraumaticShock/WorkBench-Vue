@@ -2,13 +2,15 @@
 import { useTodoStore } from '@/stores/todo'
 import { storeToRefs } from 'pinia'
 import { useWorkDurationStore } from '@/stores/workDuration'
+import { useTodoCategoryStore } from '@/stores/todoCategory'
 
 const todoStore = useTodoStore();
-const workDurationStore = useWorkDurationStore();
+const workDurationStore = useWorkDurationStore();   
+const todoCategoryStore = useTodoCategoryStore();
 
 const { state } = storeToRefs(todoStore);
 const { workDuration } = storeToRefs(workDurationStore);
-
+const { categories } = storeToRefs(todoCategoryStore);
 </script>
 
 <template>

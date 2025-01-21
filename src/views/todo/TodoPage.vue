@@ -30,7 +30,15 @@
                         }}</div>
                 </div>
                 <div class="flex items-center gap-2 ml-auto">
-
+                    <button class="btn btn-sm btn-ghost text-white hover:text-white gap-2"
+                        @click="showCategoryManage = true">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        分类管理
+                    </button>
                     <button class="btn btn-sm btn-ghost text-white hover:text-white gap-2 ml-4"
                         @click="selectedTodo = {}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
@@ -149,6 +157,9 @@
             </div>
         </div>
     </dialog>
+
+    <!-- 分类管理对话框 -->
+    <CategoryManageDialog v-model="showCategoryManage" />
 </template>
 
 <style scoped lang="postcss">
@@ -197,6 +208,7 @@ import type { Todo } from '@/types/todo'
 import { ref, onMounted, watch } from 'vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
+import CategoryManageDialog from '@/components/todo/CategoryManageDialog.vue'
 
 const todoStore = useTodoStore()
 const loading = ref(false)
@@ -388,6 +400,9 @@ const handleSearch = () => {
 watch(searchQuery, () => {
     handleSearch()
 })
+
+// 分类管理对话框状态
+const showCategoryManage = ref(false)
 
 onMounted(() => {
     fetchTodoList()

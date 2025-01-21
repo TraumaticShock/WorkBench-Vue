@@ -1,9 +1,9 @@
 import request from '@/utils/request';
-import type { LoginForm, SignUpForm, User } from '@/types/user';
+import type { LoginFormParams, SignUpFormParams, User } from '@/types/user';
 import type { ApiResponse } from '@/types/ApiResponse';
 
 export const userApi = {
-  signup(data: SignUpForm) {
+  signup(data: SignUpFormParams) {
     const { confirmPassword, ...userData } = data;
     return request.post<ApiResponse<User>>('/auth/register', {
       username: userData.username,
@@ -12,7 +12,7 @@ export const userApi = {
     });
   },
 
-  login(data: LoginForm) {
+  login(data: LoginFormParams) {
     return request.post<ApiResponse<User>>('/auth/login', data);
   },
 

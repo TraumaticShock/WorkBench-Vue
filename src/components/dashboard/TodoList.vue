@@ -135,9 +135,8 @@
 
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
-import type { CreateTodoFormParams, Todo } from '@/types/todo'
+import type { Todo } from '@/types/todo'
 import { ref, onMounted } from 'vue'
-import TodoEditDialog from '@/components/todo/TodoEditDialog.vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 
 const todoStore = useTodoStore()

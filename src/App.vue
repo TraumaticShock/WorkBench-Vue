@@ -8,14 +8,17 @@
 import { onMounted, onUnmounted } from 'vue';
 import { useWorkDurationStore } from '@/stores/workDuration';
 import { useTodoStore } from '@/stores/todo';
+import { useTodoCategoryStore } from '@/stores/todoCategory';
 
 const workDurationStore = useWorkDurationStore();
 const todoStore = useTodoStore();
+const todoCategoryStore = useTodoCategoryStore();
 
 onMounted(async () => {
   // 初始化获取今天的工作时长
   await workDurationStore.getWorkDurationToday();
   await todoStore.refreshStats();
+  await todoCategoryStore.getCategories();
 });
 
 // 监听页面关闭或者刷新
