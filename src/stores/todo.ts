@@ -4,7 +4,7 @@ import { todoApi } from '@/api/todo';
 import type {
   CreateTodoFormParams,
   TodoPageParams,
-  TodoStatisticsParams,
+
   TodoPage,
 } from '@/types/todo';
 import { getTodayString } from '@/utils';
@@ -83,9 +83,15 @@ export const useTodoStore = defineStore('todo', () => {
 
     // 创建待办
     async createTodo(todoData: CreateTodoFormParams) {
-      const { data } = await todoApi.createTodo(todoData);
-      await this.refreshStats();
-      return data.data;
+      try {
+        const { data } = await todoApi.createTodo(todoData);
+        // 更新统计数据
+        await this.refreshStats();
+        return data.data;
+      } catch (error) {
+        console.error('创建待办失败:', error);
+        throw error;
+      }
     },
 
     // 更新待办状态
@@ -251,3 +257,4 @@ export const useTodoStore = defineStore('todo', () => {
     ...actions,
   };
 });
+

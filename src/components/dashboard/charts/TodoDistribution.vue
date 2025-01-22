@@ -12,8 +12,10 @@ import VChart from 'vue-echarts';
 import { computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useTodoStore } from '@/stores/todo';
+import { useTodoCategoryStore } from '@/stores/todoCategory';
 
 const todoStore = useTodoStore();
+const todoCategoryStore = useTodoCategoryStore();
 const { state } = storeToRefs(todoStore);
 
 // 使用 computed 处理图表配置
@@ -39,7 +41,8 @@ const taskPieChartOption = computed(() => ({
     },
     yAxis: {
         type: 'category',
-        data: state.value.stats.categoryCount.categories || [],
+        // 只展示1级分类
+        data: todoCategoryStore.categories?.filter(category => !category.parent_id).map(category => category.name) || [],
         axisLabel: {
             fontSize: 10
         }

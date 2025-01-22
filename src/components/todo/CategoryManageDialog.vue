@@ -37,6 +37,13 @@
                 <div class="w-1/2 overflow-y-auto">
                     <div v-if="selectedCategory" class="p-6">
                         <div class="space-y-6">
+                            <!-- 标题 -->
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-medium">
+                                    {{ isCreating ? '新建分类' : '编辑分类' }}
+                                </h3>
+                            </div>
+
                             <!-- 基本信息 -->
                             <div class="form-control">
                                 <label class="label">
@@ -45,6 +52,7 @@
                                 <input type="text" v-model="selectedCategory.name" placeholder="请输入分类名称"
                                     class="input input-bordered w-full focus:input-primary transition-colors" />
                             </div>
+
                             <!-- 父分类选择 -->
                             <div class="form-control">
                                 <label class="label">
@@ -60,9 +68,12 @@
                                     </option>
                                 </select>
                             </div>
+
                             <!-- 操作按钮 -->
                             <div class="flex justify-between pt-4">
-                                <button class="btn btn-error btn-sm gap-2" @click="handleDelete(selectedCategory)">
+                                <button v-if="!isCreating"
+                                    class="btn btn-error btn-sm gap-2" 
+                                    @click="handleDelete(selectedCategory)">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -70,7 +81,7 @@
                                     </svg>
                                     删除分类
                                 </button>
-                                <div class="flex gap-2">
+                                <div class="flex gap-2" :class="{ 'ml-auto': isCreating }">
                                     <button class="btn btn-ghost btn-sm" @click="selectedCategory = null">取消</button>
                                     <button class="btn btn-primary btn-sm gap-2" @click="handleSave">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
@@ -78,7 +89,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M5 13l4 4L19 7" />
                                         </svg>
-                                        保存更改
+                                        {{ isCreating ? '创建' : '保存' }}
                                     </button>
                                 </div>
                             </div>
@@ -122,6 +133,8 @@ const categories = computed(() => todoCategoryStore.categories)
 
 // 选中的分类
 const selectedCategory = ref<TodoCategory | null>(null)
+// 是否为新建状态
+const isCreating = ref(false)
 
 // 将树形结构扁平化，用于父分类选择
 const flatCategories = computed(() => {
@@ -148,6 +161,7 @@ const handleBackdropClick = (e: MouseEvent) => {
 // 选择分类
 const selectCategory = (category: TodoCategory) => {
     selectedCategory.value = { ...category }
+    isCreating.value = false
 }
 
 // 展开/折叠分类
@@ -156,63 +170,37 @@ const toggleExpand = (category: TodoCategory) => {
 }
 
 // 添加分类
-const handleAdd = async (parentId?: string) => {
-    const newCategory: TodoCategory = {
-        id: '',  // ID 将由服务器生成
-        name: '新建分类',  // 默认名称
+const handleAdd = (parentId?: string) => {
+    selectedCategory.value = {
+        name: '新建分类',
         parentId
     }
-    selectedCategory.value = newCategory
-
-    try {
-        await todoCategoryStore.createCategory(newCategory.name, parentId);
-    } catch (error) {
-        console.error('创建分类失败:', error);
-        selectedCategory.value = null;
-    }
+    isCreating.value = true
 }
 
 // 保存更改
-const handleSave = () => {
+const handleSave = async () => {
     if (!selectedCategory.value) return
 
-    const updateCategory = (items: TodoCategory[], category: TodoCategory) => {
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].id === category.id) {
-                items[i] = { ...category }
-                return true
-            }
-            if (items[i].children?.length) {
-                if (updateCategory(items[i].children, category)) {
-                    return true
-                }
-            }
+    try {
+        if (isCreating.value) {
+            // 新建分类
+            await todoCategoryStore.createCategory(selectedCategory.value.name, selectedCategory.value.parentId);
+        } else {
+            // 更新分类
+            await todoCategoryStore.updateCategory(selectedCategory.value.id, selectedCategory.value);
         }
-        return false
+        selectedCategory.value = null;
+        isCreating.value = false;
+        emit('update:modelValue', false)
+    } catch (error) {
+        console.error('保存分类失败:', error);
     }
-
-    updateCategory(categories.value, selectedCategory.value)
-    selectedCategory.value = null
 }
 
 // 删除分类
 const handleDelete = (category: TodoCategory) => {
-    const deleteCategory = (items: TodoCategory[], id: string): boolean => {
-        for (let i = 0; i < items.length; i++) {
-            if (items[i].id === id) {
-                items.splice(i, 1)
-                return true
-            }
-            if (items[i].children?.length) {
-                if (deleteCategory(items[i].children, id)) {
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    deleteCategory(categories.value, category.id)
+    todoCategoryStore.deleteCategory(category.id)
     selectedCategory.value = null
 }
 </script>

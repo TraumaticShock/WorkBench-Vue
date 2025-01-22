@@ -51,8 +51,8 @@
                                         :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
                                         {{ getPriorityText(todo.priority) }}
                                     </div>
-                                    <div v-if="todo.category" class="badge badge-ghost badge-sm">
-                                        {{ todo.category }}
+                                    <div v-if="todo.category_id" class="badge badge-ghost badge-sm">
+                                        {{ todoCategoryStore.getCategoryName(todo.category_id) }}
                                     </div>
                                     <div v-if="todo.dueDate" class="text-xs opacity-50">
                                         {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
@@ -96,10 +96,14 @@
         </div>
     </div>
 
-    <!-- 编辑详情 -->
-    <dialog id="edit_modal" class="modal">
+    <!-- 编辑对话框 -->
+    <dialog id="todo_edit_modal" class="modal">
         <div class="modal-box max-w-2xl p-0 bg-transparent h-[80vh]" @click.stop>
-            <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="handleModal('edit_modal', 'close')" />
+            <TodoDetail 
+                :todo="selectedTodo" 
+                @save="saveChanges" 
+                @cancel="handleModal('todo_edit_modal', 'close')" 
+            />
         </div>
         <form method="dialog" class="modal-backdrop">
             <button @click="selectedTodo = null">关闭</button>
@@ -117,9 +121,6 @@
         </div>
     </dialog>
 
-    <!-- 编辑对话框 -->
-    <TodoEditDialog v-model="showTodoModal" :is-edit="true" :initial-data="selectedTodo" @submit="saveChanges" />
-
     <!-- 添加删除确认对话框 -->
     <dialog id="delete_confirm_modal" class="modal">
         <div class="modal-box">
@@ -136,18 +137,27 @@
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
 import type { Todo } from '@/types/todo'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
+import { useTodoCategoryStore } from '@/stores/todoCategory'
 
 const todoStore = useTodoStore()
+const todoCategoryStore = useTodoCategoryStore()
 const currentDescription = ref('')
 const showTodoModal = ref(false)
 const todoToDelete = ref('')
 const selectedTodo = ref<Todo | null>(null)
 
-onMounted(() => {
-    // 获取待办列表
-    fetchTodoList(1, false)
+onMounted(async () => {
+    try {
+        // 获取待办列表和分类数据
+        await Promise.all([
+            fetchTodoList(1, false),
+            todoCategoryStore.getCategories()
+        ])
+    } catch (error) {
+        console.error('Failed to load data:', error)
+    }
 })
 
 // 获取待办列表方法
@@ -216,26 +226,43 @@ const scrollToTop = () => {
 // 处理编辑
 const handleEdit = (todo: Todo) => {
     selectedTodo.value = { ...todo }
-    handleModal('edit_modal', 'show')
+    handleModal('todo_edit_modal', 'show')
 }
 
 // 保存更改
-const saveChanges = async (updatedTodo: Todo) => {
+const saveChanges = async (formData: Todo) => {
+    console.log('saveChanges', formData)
     try {
-        const updateData = {
-            title: updatedTodo.title,
-            description: updatedTodo.description,
-            priority: updatedTodo.priority,
-            status: updatedTodo.status,
-            dueDate: updatedTodo.dueDate,
-            category: updatedTodo.category || '工作'
+        const todoData = {
+            title: formData.title,
+            description: formData.description,
+            status: formData.status,
+            priority: formData.priority,
+            dueDate: formData.dueDate,
+            category_id: formData.category_id
         }
 
-        await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
+        if (formData.id) {
+            // 编辑模式
+            await todoStore.updateTodo(formData.id.toString(), todoData)
+        } else {
+            // 新建模式
+            await todoStore.createTodo(todoData)
+        }
         selectedTodo.value = null
-        handleModal('edit_modal', 'close')
+        handleModal('todo_edit_modal', 'close')
+        await todoStore.getTodoPage({
+            page: todoStore.state.todoPage.current,
+            size: 10,
+            ...currentFilter.value
+        })
+            // 刷新列表和统计数据
+        await Promise.all([
+            fetchTodoList(todoStore.state.todoPage.current),
+            todoStore.refreshStats()
+        ])
     } catch (error) {
-        console.error('更新待办失败:', error)
+        console.error('保存待办失败:', error)
     }
 }
 

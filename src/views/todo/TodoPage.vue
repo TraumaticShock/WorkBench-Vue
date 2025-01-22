@@ -72,11 +72,11 @@
                 <!-- 待办列表 -->
                 <div class="flex-1 overflow-hidden flex flex-col">
                     <!-- 加载状态和空数据提示 -->
-                    <div v-if="loading && !todoStore.state.todoPage.records.length"
+                    <div v-if="loading && !state.todoPage.records.length"
                         class="flex-1 flex items-center justify-center">
                         <span class="loading loading-dots loading-lg"></span>
                     </div>
-                    <div v-else-if="!todoStore.state.todoPage.records.length"
+                    <div v-else-if="!state.todoPage.records.length"
                         class="flex-1 flex items-center justify-center text-base-content/50">
                         暂无待办事项
                     </div>
@@ -100,8 +100,8 @@
                                                 :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
                                                 {{ getPriorityText(todo.priority) }}
                                             </div>
-                                            <div v-if="todo.category" class="badge badge-ghost badge-sm">
-                                                {{ todo.category }}
+                                            <div v-if="todo.category_id" class="badge badge-ghost badge-sm">
+                                                {{ todoCategoryStore.getCategoryName(todo.category_id) }}
                                             </div>
                                             <div v-if="todo.dueDate" class="text-xs opacity-50">
                                                 {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
@@ -204,16 +204,21 @@
 
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
+import { useTodoCategoryStore } from '@/stores/todoCategory'
 import type { Todo } from '@/types/todo'
 import { ref, onMounted, watch } from 'vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import CategoryManageDialog from '@/components/todo/CategoryManageDialog.vue'
+import { storeToRefs } from 'pinia'
 
 const todoStore = useTodoStore()
+const { state } = storeToRefs(todoStore)
+const todoCategoryStore = useTodoCategoryStore()
 const loading = ref(false)
 const todoToDelete = ref('')
 const selectedTodo = ref<Todo | Partial<Todo> | null>(null)
+const showCategoryManage = ref(false)
 
 // 添加当前筛选条件的状态
 const currentFilter = ref({
@@ -348,31 +353,23 @@ const saveChanges = async (updatedTodo: Todo) => {
             priority: updatedTodo.priority,
             status: updatedTodo.status,
             dueDate: updatedTodo.dueDate,
-            category: updatedTodo.category || '工作'
+            category_id: updatedTodo.category_id
         }
 
         if (updatedTodo.id) {
             // 更新现有待办
-            await todoStore.updateTodo(updatedTodo.id.toString(), updateData)
-
-            // 更新列表中的对应项
-            const index = todoStore.state.todoPage.records.findIndex(
-                todo => todo.id === updatedTodo.id
-            )
-            if (index !== -1) {
-                todoStore.state.todoPage.records[index] = { ...updatedTodo }
-            }
+            await todoStore.updateTodo(updatedTodo.id.toString(), updateData as any)
         } else {
             // 创建新待办
-            const result = await todoStore.createTodo(updateData)
-            // 如果是在第一页，将新创建的待办添加到列表开头
-            if (todoStore.state.todoPage.current === 1) {
-                todoStore.state.todoPage.records.unshift(result)
-            }
+            await todoStore.createTodo(updateData as any)
         }
 
-        // 只更新统计数据
-        await todoStore.refreshStats()
+        // 刷新列表和统计数据
+        await Promise.all([
+            fetchTodoList(todoStore.state.todoPage.current),
+            todoStore.refreshStats()
+        ])
+        
         // 清除选中状态
         selectedTodo.value = null
     } catch (error) {
@@ -401,11 +398,12 @@ watch(searchQuery, () => {
     handleSearch()
 })
 
-// 分类管理对话框状态
-const showCategoryManage = ref(false)
-
-onMounted(() => {
-    fetchTodoList()
-    todoStore.refreshStats()
+// 在组件挂载时加载数据
+onMounted(async () => {
+    await Promise.all([
+        fetchTodoList(),
+        todoStore.refreshStats(),
+        todoCategoryStore.getCategories()
+    ])
 })
 </script>

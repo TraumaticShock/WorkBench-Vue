@@ -8,5 +8,11 @@ export const todoCategoryApi = {
     },
     createCategory(data: Pick<TodoCategory, 'name' | 'parentId'>) {
         return request.post<ApiResponse<TodoCategory>>('/todos/categories', data);
+    },
+    updateCategory(id: string, data: TodoCategory) {
+        return request.put<ApiResponse<TodoCategory>>(`/todos/categories/${id}`, data);
+    },
+    deleteCategory(id: string) {
+        return request.delete<ApiResponse<TodoCategory>>(`/todos/categories/${id}`);
     }
 };

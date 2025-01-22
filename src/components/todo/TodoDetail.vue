@@ -15,7 +15,7 @@
                             </svg>
                             取消
                         </button>
-                        <button class="btn btn-primary btn-sm gap-2" @click="handleSave">
+                        <button class="btn btn-primary btn-sm gap-2" @click="handleSave" :disabled="!formValid">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                                 stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -30,13 +30,20 @@
             <!-- 编辑区域 -->
             <div class="overflow-y-auto px-6 py-4 flex-1 min-h-0">
                 <div class="flex flex-col gap-4 h-full">
+                    <!-- 错误提示 -->
+                    <div v-if="showError" class="alert alert-error shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>请填写所有必填项（带*号的字段）</span>
+                    </div>
+
                     <!-- 标题输入 -->
                     <div class="form-control w-full flex-none">
                         <label class="label py-1">
-                            <span class="label-text font-medium">标题</span>
+                            <span class="label-text font-medium">标题<span class="text-error ml-1">*</span></span>
                         </label>
                         <input type="text" v-model="form.title" placeholder="请输入待办事项标题"
-                            class="input input-bordered w-full h-10 min-h-[2.5rem] focus:input-primary transition-colors" />
+                            class="input input-bordered w-full h-10 min-h-[2.5rem] focus:input-primary transition-colors"
+                            :class="{'input-error': showError && !form.title?.trim()}" />
                     </div>
 
                     <!-- 描述输入 -->
@@ -53,7 +60,7 @@
                         <!-- 状态选择 -->
                         <div class="form-control w-full">
                             <label class="label py-1">
-                                <span class="label-text font-medium">状态</span>
+                                <span class="label-text font-medium">状态<span class="text-error ml-1">*</span></span>
                             </label>
                             <div class="join w-full">
                                 <button class="join-item btn btn-sm flex-1"
@@ -74,7 +81,7 @@
                         <!-- 优先级选择 -->
                         <div class="form-control w-full">
                             <label class="label py-1">
-                                <span class="label-text font-medium">优先级</span>
+                                <span class="label-text font-medium">优先级<span class="text-error ml-1">*</span></span>
                             </label>
                             <div class="join w-full">
                                 <button class="join-item btn btn-sm flex-1"
@@ -98,31 +105,21 @@
                         </div>
                     </div>
 
-                    <!-- 分类和截止日期 -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- 分类选择 -->
-                        <div class="form-control w-full">
-                            <label class="label py-1">
-                                <span class="label-text font-medium">分类</span>
-                            </label>
-                            <div class="join w-full">
-                                <button v-for="category in availableCategories" :key="category"
-                                    class="join-item btn btn-sm flex-1"
-                                    :class="{ 'btn-primary': form.category === category }"
-                                    @click="form.category = category">
-                                    {{ category }}
-                                </button>
-                            </div>
-                        </div>
+                    <!-- 分类 -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">分类<span class="text-error ml-1">*</span></span>
+                        </label>
+                        <CategoryTree v-model="form.category_id" class="max-h-[200px] overflow-y-auto" />
+                    </div>
 
-                        <!-- 截止日期 -->
-                        <div class="form-control w-full">
-                            <label class="label py-1">
-                                <span class="label-text font-medium">截止日期</span>
-                            </label>
-                            <input type="datetime-local" v-model="form.dueDate"
-                                class="input input-bordered w-full h-10 min-h-[2.5rem] focus:input-primary transition-colors" />
-                        </div>
+                    <!-- 截止日期 -->
+                    <div class="form-control w-full">
+                        <label class="label py-1">
+                            <span class="label-text font-medium">截止日期</span>
+                        </label>
+                        <input type="datetime-local" v-model="form.dueDate"
+                            class="input input-bordered w-full h-10 min-h-[2.5rem] focus:input-primary transition-colors" />
                     </div>
                 </div>
             </div>
@@ -131,8 +128,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import type { Todo } from '@/types/todo'
+import { useTodoStore } from '@/stores/todo'
+
+import CategoryTree from './CategoryTree.vue'
 
 interface Props {
     todo: Todo | Partial<Todo> | null
@@ -142,43 +142,60 @@ const props = defineProps<Props>()
 const emit = defineEmits(['save', 'cancel'])
 
 // 表单数据
-const form = reactive({
+const form = ref<Todo>({
+    id: props.todo?.id,
     title: '',
     description: '',
-    status: 'pending',
     priority: 'low',
+    status: 'pending',
     dueDate: '',
-    category: '工作'
+    category_id: '',
+    createdAt: '',
+    updatedAt: ''
 })
 
-// 可选分类
-const availableCategories = ref(['工作', '学习', '生活'])
+// 表单验证
+const formValid = computed(() => {
+    return form.value.title?.trim() && 
+           form.value.priority && 
+           form.value.status &&
+           form.value.category_id?.trim()
+})
+
+// 错误提示
+const showError = ref(false)
 
 // 监听 todo 变化，更新表单数据
 watch(() => props.todo, (newTodo) => {
     if (newTodo?.id) {  // 编辑模式
-        form.title = newTodo.title || ''
-        form.description = newTodo.description || ''
-        form.status = newTodo.status || 'pending'
-        form.priority = newTodo.priority || 'low'
-        form.dueDate = newTodo.dueDate || ''
-        form.category = newTodo.category || '工作'
+        form.value.title = newTodo.title || ''
+        form.value.description = newTodo.description || ''
+        form.value.status = newTodo.status || 'pending'
+        form.value.priority = newTodo.priority || 'low'
+        form.value.dueDate = newTodo.dueDate || ''
+        form.value.category_id = newTodo.category_id || ''
     } else {  // 新建模式
-        form.title = ''
-        form.description = ''
-        form.status = 'pending'
-        form.priority = 'low'
-        form.dueDate = ''
-        form.category = '工作'
+        form.value.title = ''
+        form.value.description = ''
+        form.value.status = 'pending'
+        form.value.priority = 'low'
+        form.value.dueDate = ''
+        form.value.category_id = ''
     }
 }, { immediate: true })
 
 // 保存
 const handleSave = () => {
-    emit('save', {
-        ...form,
-        id: props.todo?.id
-    })
+    if (!formValid.value) {
+        showError.value = true
+        // 3秒后自动隐藏错误提示
+        setTimeout(() => {
+            showError.value = false
+        }, 3000)
+        return
+    }
+    console.log('form.value', form.value)
+    emit('save', form.value as Todo)
 }
 
 // 取消

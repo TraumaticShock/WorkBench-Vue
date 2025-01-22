@@ -1,9 +1,9 @@
 // 待办事项实体类型
 export interface Todo {
-  id: number;
+  id: string;
   title: string; // 标题
   description: string; // 描述
-  category: string; // 分类
+  category_id: string; // 分类
   priority: 'low' | 'medium' | 'high'; // 优先级
   status: 'pending' | 'completed'; // 状态
   dueDate: string; // 截止日期
@@ -24,7 +24,7 @@ export interface TodoStatisticsParams {
 export interface CreateTodoFormParams {
   title: string;
   description: string;
-  category: string;
+  category_id: string;
   priority: 'low' | 'medium' | 'high';
   status: 'completed' | 'pending';
   dueDate: string;
