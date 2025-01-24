@@ -3,14 +3,18 @@ import { useTodoStore } from '@/stores/todo'
 import { storeToRefs } from 'pinia'
 import { useWorkDurationStore } from '@/stores/workDuration'
 import { useTodoCategoryStore } from '@/stores/todoCategory'
+import { useNoteStore } from '@/stores/note';
 
 const todoStore = useTodoStore();
+const noteStore = useNoteStore();
 const workDurationStore = useWorkDurationStore();   
 const todoCategoryStore = useTodoCategoryStore();
 
-const { state } = storeToRefs(todoStore);
+const { state: todoState } = storeToRefs(todoStore);
+const { state: noteState } = storeToRefs(noteStore);
 const { workDuration } = storeToRefs(workDurationStore);
 const { categories } = storeToRefs(todoCategoryStore);
+
 </script>
 
 <template>
@@ -24,16 +28,16 @@ const { categories } = storeToRefs(todoCategoryStore);
             <div class="grid grid-cols-4 gap-4">
                 <div class="stat bg-base-200/50 rounded-xl">
                     <div class="stat-title">今日待办</div>
-                    <div class="stat-value">{{ state.stats.todayCount }}</div>
+                    <div class="stat-value">{{ todoState.stats.todayCount }}</div>
                 </div>
                 <div class="stat bg-base-200/50 rounded-xl">
                     <div class="stat-title">已完成</div>
-                    <div class="stat-value text-success">{{ state.stats.completeCount }}</div>
+                    <div class="stat-value text-success">{{ todoState.stats.completeCount }}</div>
                 </div>
                 <div class="stat bg-base-200/50 rounded-xl">
                     <div class="stat-title">笔记总数</div>
-                    <div class="stat-value">23</div>
-                    <div class="stat-desc">本月新增 5 篇</div>
+                    <div class="stat-value">{{ noteState.stats.count }}</div>
+                    <div class="stat-desc">本月新增 {{ noteState.stats.monthCount }} 篇</div>
                 </div>
                 <div class="stat bg-base-200/50 rounded-xl">
                     <div class="stat-title">工作时长</div>

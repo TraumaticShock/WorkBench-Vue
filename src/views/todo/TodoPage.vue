@@ -201,7 +201,6 @@
     overflow: hidden;
 }
 </style>
-
 <script setup lang="ts">
 import { useTodoStore } from '@/stores/todo'
 import { useTodoCategoryStore } from '@/stores/todoCategory'

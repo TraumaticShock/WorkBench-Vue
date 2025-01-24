@@ -13,6 +13,7 @@ declare module 'vue' {
     CategorySelect: typeof import('./src/components/todo/CategorySelect.vue')['default']
     CategoryTree: typeof import('./src/components/todo/CategoryTree.vue')['default']
     CategoryTreeItem: typeof import('./src/components/todo/CategoryTreeItem.vue')['default']
+    ConfirmDialog: typeof import('./src/components/common/ConfirmDialog.vue')['default']
     FileList: typeof import('./src/components/files/FileList.vue')['default']
     FileManager: typeof import('./src/components/dashboard/FileManager.vue')['default']
     FileStats: typeof import('./src/components/files/FileStats.vue')['default']

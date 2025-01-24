@@ -41,14 +41,13 @@
                         <div v-for="todo in todoStore.state.todoPage.records" :key="todo.id"
                             class="mb-2 last:mb-0 flex items-center gap-3 p-3 bg-base-100 border-2 border-base-200/70 hover:border-base-300 shadow-sm hover:shadow-md transition-all rounded-xl">
                             <input type="checkbox" :checked="todo.status === 'completed'" class="checkbox checkbox-sm"
-                                @change="toggleTodo(todo.id.toString(), todo.status)" />
+                                @change="toggleTodo(todo.id.toString(), todo.status, $event)" @click.stop />
                             <div class="flex-1">
                                 <div class="flex items-center gap-2">
                                     <span :class="{ 'line-through opacity-50': todo.status === 'completed' }">{{
                                         todo.title
-                                        }}</span>
-                                    <div v-if="todo.priority"
-                                        :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
+                                    }}</span>
+                                    <div v-if="todo.priority" :class="`badge ${getPriorityClass(todo.priority)} badge-sm`">
                                         {{ getPriorityText(todo.priority) }}
                                     </div>
                                     <div v-if="todo.category_id" class="badge badge-ghost badge-sm">
@@ -62,27 +61,28 @@
                                         {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', { weekday: 'long' }) }}
                                     </div>
                                 </div>
-                                <div v-if="todo.description"
-                                    class="text-xs opacity-50 mt-1 line-clamp-2 cursor-pointer text-left"
-                                    style="max-height: 2.4em; min-height: 0;"
-                                    @click="openDescription(todo.description)">
+                                <div v-if="todo.description" class="text-xs opacity-50 mt-1 line-clamp-2 cursor-pointer text-left"
+                                    style="max-height: 2.4em; min-height: 0;" @click="openDescription(todo.description)">
                                     {{ todo.description }}
                                 </div>
                             </div>
-                            <button class="btn btn-ghost btn-xs btn-square" @click="handleEdit(todo)">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                            </button>
-                            <button class="btn btn-ghost btn-xs btn-square" @click="handleDelete(todo.id.toString())">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </button>
+                            <!-- 操作按钮 -->
+                            <div class="flex items-center gap-1">
+                                <button class="btn btn-ghost btn-xs btn-square" @click.stop="handleEdit(todo)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </button>
+                                <button class="btn btn-ghost btn-xs btn-square text-error" @click.stop="handleDelete(todo.id)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </template>
 
@@ -106,29 +106,17 @@
             />
         </div>
         <form method="dialog" class="modal-backdrop">
-            <button @click="selectedTodo = null">关闭</button>
+            <button @click="handleModal('todo_edit_modal', 'close')">关闭</button>
         </form>
     </dialog>
 
-    <!-- 修改 Modal -->
+    <!-- 备注详情 -->
     <dialog id="description_modal" class="modal" @click="handleModal('description_modal', 'close')">
         <div class="modal-box" @click.stop>
             <h3 class="font-bold text-lg">备注详情</h3>
             <p class="py-4">{{ currentDescription }}</p>
             <div class="modal-action">
                 <button class="btn" @click="handleModal('description_modal', 'close')">关闭</button>
-            </div>
-        </div>
-    </dialog>
-
-    <!-- 添加删除确认对话框 -->
-    <dialog id="delete_confirm_modal" class="modal">
-        <div class="modal-box">
-            <h3 class="font-bold text-lg">确认删除</h3>
-            <p class="py-4">确定要删除这个待办吗？此操作不可撤销。</p>
-            <div class="modal-action">
-                <button class="btn" @click="handleModal('delete_confirm_modal', 'close')">取消</button>
-                <button class="btn btn-error" @click="confirmDelete">删除</button>
             </div>
         </div>
     </dialog>
@@ -140,12 +128,12 @@ import type { Todo } from '@/types/todo'
 import { ref, onMounted, computed, watch } from 'vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 import { useTodoCategoryStore } from '@/stores/todoCategory'
+import { useDialogStore } from '@/stores/dialog'
 
 const todoStore = useTodoStore()
 const todoCategoryStore = useTodoCategoryStore()
+const dialogStore = useDialogStore()
 const currentDescription = ref('')
-const showTodoModal = ref(false)
-const todoToDelete = ref('')
 const selectedTodo = ref<Todo | null>(null)
 
 onMounted(async () => {
@@ -231,9 +219,9 @@ const handleEdit = (todo: Todo) => {
 
 // 保存更改
 const saveChanges = async (formData: Todo) => {
-    console.log('saveChanges', formData)
     try {
         const todoData = {
+            id: formData.id,
             title: formData.title,
             description: formData.description,
             status: formData.status,
@@ -280,25 +268,60 @@ const handleScroll = async (e: Event) => {
     }
 }
 
+// 处理删除
 const handleDelete = (id: string) => {
-    todoToDelete.value = id
-    handleModal('delete_confirm_modal', 'show')
+    dialogStore.confirm({
+        title: '确认删除',
+        message: '确定要删除这个待办吗？此操作不可撤销。',
+        confirmText: '删除',
+        cancelText: '取消',
+        confirmButtonClass: 'btn-error',
+        async onConfirm() {
+            try {
+                await todoStore.deleteTodo(id)
+                await Promise.all([
+                    fetchTodoList(todoStore.state.todoPage.current),
+                    todoStore.refreshStats()
+                ])
+            } catch (error) {
+                console.error('删除待办失败:', error)
+            }
+        }
+    })
 }
 
-const confirmDelete = async () => {
+// 切换待办状态
+const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending', event: Event) => {
     try {
-        await todoStore.deleteTodo(todoToDelete.value)
-        handleModal('delete_confirm_modal', 'close')
-    } catch (error) {
-        console.error('删除待办失败:', error)
-    }
-}
+        event.stopPropagation() // 阻止事件冒泡
+        const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
 
-const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending') => {
-    try {
-        await todoStore.toggleTodoStatus(id, currentStatus)
+        // 先在前端更新状态，提供即时反馈
+        const index = todoStore.state.todoPage.records.findIndex(todo => todo.id.toString() === id)
+        if (index !== -1) {
+            if (currentFilter.value.status) {
+                // 如果在特定状态标签下，移除该项
+                todoStore.state.todoPage.records.splice(index, 1)
+            } else {
+                // 否则直接更新状态
+                todoStore.state.todoPage.records[index].status = newStatus
+            }
+        }
+
+        // 后端更新
+        await todoStore.updateTodo(id, { status: newStatus } as any)
+
+        // 如果当前页没有数据了且不是第一页，则加载上一页
+        if (todoStore.state.todoPage.records.length === 0 && todoStore.state.todoPage.current > 1) {
+            await fetchTodoList(todoStore.state.todoPage.current - 1)
+        }
+
+        // 只更新统计数据
+        await todoStore.refreshStats()
     } catch (error) {
         console.error('更新待办状态失败:', error)
+        // 如果失败，恢复原状态
+        await fetchTodoList(todoStore.state.todoPage.current)
     }
 }
 

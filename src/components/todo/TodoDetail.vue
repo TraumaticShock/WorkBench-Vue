@@ -168,6 +168,7 @@ const showError = ref(false)
 // 监听 todo 变化，更新表单数据
 watch(() => props.todo, (newTodo) => {
     if (newTodo?.id) {  // 编辑模式
+        form.value.id = newTodo.id
         form.value.title = newTodo.title || ''
         form.value.description = newTodo.description || ''
         form.value.status = newTodo.status || 'pending'
@@ -194,7 +195,6 @@ const handleSave = () => {
         }, 3000)
         return
     }
-    console.log('form.value', form.value)
     emit('save', form.value as Todo)
 }
 

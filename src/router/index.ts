@@ -25,6 +25,11 @@ const router = createRouter({
           component: () => import('@/views/note/NotePage.vue'),
         },
         {
+          path: 'note/edit/:id?',
+          name: 'NoteEdit',
+          component: () => import('@/views/note/NoteEdit.vue'),
+        },
+        {
           path: 'file',
           name: 'File',
           component: () => import('@/views/file/FilePage.vue'),
