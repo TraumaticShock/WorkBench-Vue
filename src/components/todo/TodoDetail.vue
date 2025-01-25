@@ -1,5 +1,5 @@
 <template>
-    <div class="card bg-base-100 shadow-xl h-full flex flex-col">
+    <div class="card bg-base-100 h-full flex flex-col">
         <div class="card-body p-0 flex flex-col h-full">
             <!-- 顶部工具栏 -->
             <div class="px-6 pt-6 pb-4 border-b border-base-300">
@@ -32,7 +32,11 @@
                 <div class="flex flex-col gap-4 h-full">
                     <!-- 错误提示 -->
                     <div v-if="showError" class="alert alert-error shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                         <span>请填写所有必填项（带*号的字段）</span>
                     </div>
 
@@ -43,7 +47,7 @@
                         </label>
                         <input type="text" v-model="form.title" placeholder="请输入待办事项标题"
                             class="input input-bordered w-full h-10 min-h-[2.5rem] focus:input-primary transition-colors"
-                            :class="{'input-error': showError && !form.title?.trim()}" />
+                            :class="{ 'input-error': showError && !form.title?.trim() }" />
                     </div>
 
                     <!-- 描述输入 -->
@@ -128,11 +132,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import type { Todo } from '@/types/todo'
-import { useTodoStore } from '@/stores/todo'
 
-import CategoryTree from './CategoryTree.vue'
+import CategoryTree from './TodoCategoryTree.vue'
 
 interface Props {
     todo: Todo | Partial<Todo> | null
@@ -156,10 +159,10 @@ const form = ref<Todo>({
 
 // 表单验证
 const formValid = computed(() => {
-    return form.value.title?.trim() && 
-           form.value.priority && 
-           form.value.status &&
-           form.value.category_id?.trim()
+    return form.value.title?.trim() &&
+        form.value.priority &&
+        form.value.status &&
+        form.value.category_id?.trim()
 })
 
 // 错误提示

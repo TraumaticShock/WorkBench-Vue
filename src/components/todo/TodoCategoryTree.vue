@@ -1,14 +1,8 @@
 <template>
     <div class="category-tree border rounded-lg overflow-hidden bg-base-100">
         <div class="p-2">
-            <CategoryTreeItem
-                v-for="category in todoCategoryStore.categories"
-                :key="category.id"
-                :category="category"
-                :selected-category="selectedCategory"
-                @select="handleSelect"
-                @toggle="handleToggle"
-            />
+            <CategoryTreeItem v-for="category in todoCategoryStore.categories" :key="category.id" :category="category"
+                :selected-category="selectedCategory" @select="handleSelect" @toggle="handleToggle" />
         </div>
     </div>
 </template>
@@ -17,7 +11,7 @@
 import { computed } from 'vue'
 import { useTodoCategoryStore } from '@/stores/todoCategory'
 import type { TodoCategory } from '@/types/todoCategory'
-import CategoryTreeItem from './CategoryTreeItem.vue'
+import CategoryTreeItem from './TodoCategoryTreeItem.vue'
 
 const props = defineProps<{
     modelValue?: string
@@ -62,4 +56,4 @@ const handleToggle = (category: TodoCategory) => {
 .category-tree {
     @apply transition-all duration-200;
 }
-</style> 
+</style>

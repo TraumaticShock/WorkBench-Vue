@@ -8,8 +8,7 @@
                     <button class="btn btn-sm btn-ghost text-white gap-2" @click="handleAdd()">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 4v16m8-8H4" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
                         新建分类
                     </button>
@@ -21,14 +20,13 @@
                 <div class="w-1/2 border-r border-base-200 overflow-y-auto">
                     <div class="p-4">
                         <!-- 分类树 -->
-                        <div v-for="category in categories" :key="category.id" class="category-tree">
-                            <CategoryTreeItem
-                                :category="category"
-                                :selected-category="selectedCategory"
-                                @select="selectCategory"
-                                @toggle="toggleExpand"
-                                @add="handleAdd"
-                            />
+                        <div v-if="categories.length === 0" class="text-center py-4 text-base-content/50">
+                            暂无分类
+                        </div>
+                        <div v-else class="category-tree">
+                            <TodoCategoryTreeItem v-for="category in categories" :key="category.id" :category="category"
+                                :selected-category="selectedCategory" @select="selectCategory" @toggle="toggleExpand"
+                                @add="handleAdd" />
                         </div>
                     </div>
                 </div>
@@ -61,8 +59,7 @@
                                 <select class="select select-bordered w-full focus:select-primary transition-colors"
                                     v-model="selectedCategory.parentId">
                                     <option value="">无</option>
-                                    <option v-for="category in flatCategories" :key="category.id"
-                                        :value="category.id"
+                                    <option v-for="category in flatCategories" :key="category.id" :value="category.id"
                                         :disabled="category.id === selectedCategory.id">
                                         {{ category.name }}
                                     </option>
@@ -71,8 +68,7 @@
 
                             <!-- 操作按钮 -->
                             <div class="flex justify-between pt-4">
-                                <button v-if="!isCreating"
-                                    class="btn btn-error btn-sm gap-2" 
+                                <button v-if="!isCreating" class="btn btn-error btn-sm gap-2"
                                     @click="handleDelete(selectedCategory)">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +112,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import CategoryTreeItem from './CategoryTreeItem.vue'
+import TodoCategoryTreeItem from './TodoCategoryTreeItem.vue'
 import type { TodoCategory } from '@/types/todoCategory'
 import { useTodoCategoryStore } from '@/stores/todoCategory'
 
@@ -210,7 +206,7 @@ const handleDelete = (category: TodoCategory) => {
     @apply space-y-1;
 }
 
-.category-item > div.active {
+.category-item>div.active {
     @apply bg-primary/10;
 }
 
@@ -237,4 +233,4 @@ const handleDelete = (category: TodoCategory) => {
 ::-webkit-scrollbar-thumb:hover {
     background: #ccc;
 }
-</style> 
+</style>

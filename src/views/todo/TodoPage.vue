@@ -39,8 +39,7 @@
                         </svg>
                         分类管理
                     </button>
-                    <button class="btn btn-sm btn-ghost text-white hover:text-white gap-2 ml-4"
-                        @click="selectedTodo = {}">
+                    <button class="btn btn-sm btn-ghost text-white hover:text-white gap-2" @click="selectedTodo = {}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -208,7 +207,7 @@ import type { Todo } from '@/types/todo'
 import { ref, onMounted, watch } from 'vue'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
-import CategoryManageDialog from '@/components/todo/CategoryManageDialog.vue'
+import CategoryManageDialog from '@/components/todo/TodoCategoryManageDialog.vue'
 import { storeToRefs } from 'pinia'
 
 const todoStore = useTodoStore()
@@ -368,7 +367,7 @@ const saveChanges = async (updatedTodo: Todo) => {
             fetchTodoList(todoStore.state.todoPage.current),
             todoStore.refreshStats()
         ])
-        
+
         // 清除选中状态
         selectedTodo.value = null
     } catch (error) {
