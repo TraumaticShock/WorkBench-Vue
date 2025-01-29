@@ -1,5 +1,5 @@
 <template>
-    <div class="card bg-base-100 shadow-xl h-full relative overflow-hidden">
+    <div class="card bg-base-100 shadow-xl h-[calc(100vh-100px)] relative overflow-hidden">
         <!-- 顶部装饰条 -->
         <div class="absolute top-0 left-0 right-0 h-12 bg-gradient-to-r from-neutral to-neutral/70">
             <div class="flex items-center h-full px-6">
@@ -39,7 +39,7 @@
                         </svg>
                         分类管理
                     </button>
-                    <button class="btn btn-sm btn-ghost text-white hover:text-white gap-2" @click="selectedTodo = {}">
+                    <button class="btn btn-sm btn-ghost text-white hover:text-white gap-2" @click="createNewTodo">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -51,7 +51,7 @@
         </div>
 
         <!-- 主要内容区域 -->
-        <div class="pt-16 h-full flex">
+        <div class="pt-12 h-full flex">
             <!-- 左侧列表部分 -->
             <div class="w-1/2 border-r border-base-200 flex flex-col">
                 <!-- 搜索栏 -->
@@ -91,7 +91,7 @@
                                     @change="toggleTodo(todo.id.toString(), todo.status, $event)" @click.stop />
                                 <div class="flex-1 min-w-0">
                                     <div class="flex-1">
-                                        <div class="flex items-center gap-2">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             <span :class="{ 'line-through opacity-50': todo.status === 'completed' }">{{
                                                 todo.title
                                             }}</span>
@@ -102,7 +102,7 @@
                                             <div v-if="todo.category_id" class="badge badge-ghost badge-sm">
                                                 {{ todoCategoryStore.getCategoryName(todo.category_id) }}
                                             </div>
-                                            <div v-if="todo.dueDate" class="text-xs opacity-50">
+                                            <div v-if="todo.dueDate" class="text-xs opacity-50 break-normal">
                                                 {{ new Date(todo.dueDate).toLocaleDateString('zh-CN', {
                                                     year: 'numeric', month:
                                                         'long', day: 'numeric'
@@ -139,8 +139,10 @@
             </div>
 
             <!-- 右侧详情部分 -->
-            <div class="w-1/2 overflow-y-auto p-6 h-[calc(100vh-100px)]">
-                <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="handleModal('edit_modal', 'close')" />
+            <div class="w-1/2 h-[calc(100%-4rem)] overflow-y-auto">
+                <div class="p-6">
+                    <TodoDetail :todo="selectedTodo" @save="saveChanges" @cancel="handleModal('edit_modal', 'close')" />
+                </div>
             </div>
         </div>
     </div>
@@ -404,4 +406,17 @@ onMounted(async () => {
         todoCategoryStore.getCategories()
     ])
 })
+
+// 添加新方法
+const createNewTodo = () => {
+    selectedTodo.value = {
+        id: null,
+        title: '',
+        description: '',
+        status: 'pending',
+        priority: 'low',
+        category_id: '',
+        dueDate: null
+    }
+}
 </script>

@@ -108,6 +108,17 @@
             <button @click="$emit('update:modelValue', false)">关闭</button>
         </form>
     </dialog>
+
+    <!-- 添加 ConfirmDialog 组件 -->
+    <ConfirmDialog
+        v-model="showDeleteConfirm"
+        title="警告"
+        :message="deleteConfirmMessage"
+        confirm-text="确定删除"
+        cancel-text="取消"
+        confirm-button-class="btn-error"
+        @confirm="confirmDelete"
+    />
 </template>
 
 <script setup lang="ts">
@@ -115,6 +126,7 @@ import { ref, computed } from 'vue'
 import TodoCategoryTreeItem from './TodoCategoryTreeItem.vue'
 import type { TodoCategory } from '@/types/todoCategory'
 import { useTodoCategoryStore } from '@/stores/todoCategory'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 
 const props = defineProps<{
     modelValue: boolean
@@ -194,10 +206,33 @@ const handleSave = async () => {
     }
 }
 
-// 删除分类
-const handleDelete = (category: TodoCategory) => {
-    todoCategoryStore.deleteCategory(category.id)
-    selectedCategory.value = null
+// 添加删除确认相关的响应式变量
+const showDeleteConfirm = ref(false)
+const deleteConfirmMessage = ref('')
+const categoryToDelete = ref<TodoCategory | null>(null)
+
+// 修改删除处理函数
+const handleDelete = async (category: TodoCategory) => {
+    const hasChildren = category.children && category.children.length > 0
+    
+    if (hasChildren) {
+        categoryToDelete.value = category
+        deleteConfirmMessage.value = `该分类包含 ${category.children.length} 个子分类，删除将同时删除所有子分类，是否继续？`
+        showDeleteConfirm.value = true
+    } else {
+        // 直接删除没有子分类的分类
+        todoCategoryStore.deleteCategory(category.id)
+        selectedCategory.value = null
+    }
+}
+
+// 添加确认删除的处理函数
+const confirmDelete = () => {
+    if (categoryToDelete.value) {
+        todoCategoryStore.deleteCategory(categoryToDelete.value.id)
+        selectedCategory.value = null
+        categoryToDelete.value = null
+    }
 }
 </script>
 

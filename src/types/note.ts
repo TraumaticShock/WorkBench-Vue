@@ -34,7 +34,7 @@ export interface Note {
   id: string;
   title: string;
   content: string;
-  categoryId?: string;
+  category_id?: string;
   categoryName?: string;
   createTime?: string;
   updateTime?: string;

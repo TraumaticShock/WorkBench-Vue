@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@rollup/rollup-win32-x64-msvc": "^4.30.0",
     "axios": "^1.7.9",
     "echarts": "^5.5.1",
     "element-plus": "^2.9.1",
@@ -17,9 +16,13 @@
     "pinia-plugin-persistedstate": "^4.2.0",
     "vue": "^3.5.13",
     "vue-echarts": "^7.0.3",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "markdown-it": "^14.0.0",
+    "markdown-it-anchor": "^8.6.7",
+    "markdown-it-toc-done-right": "^4.2.0"
   },
   "devDependencies": {
+    "@schemastore/package": "^0.0.10",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.10.2",
     "@typescript-eslint/eslint-plugin": "^8.18.2",

@@ -1,129 +1,119 @@
-import { ref } from 'vue'
 import { defineStore } from 'pinia'
-
-interface File {
-  id: string
-  name: string
-  type: 'file' | 'folder'
-  size?: number
-  path: string
-  createdAt: string
-  updatedAt: string
-}
-
-interface FileState {
-  files: File[]
-  folders: File[]
-}
+import { fileApi } from '@/api/file'
+import type { FileState, FileStatisticsResponse, FileTreeResponse, FileUploadResponse, TreeNode } from '@/types/file'
+import { ref } from 'vue'
+import { link } from 'fs'
 
 export const useFileStore = defineStore('file', () => {
   const state = ref<FileState>({
-    files: [],
-    folders: []
+    uploadProgress: 0,
+    fileTree: [],
+    currentPath: '/',
+    fileStatistics: null
   })
 
-  // 获取文件列表
-  const getFiles = async (path: string) => {
-    // TODO: 实现与后端 API 的集成
-    // 目前返回模拟数据
-    const mockFiles: File[] = [
-      {
-        id: 'folder-1',
-        name: '文档',
-        type: 'folder',
-        path: '/文档',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'folder-2',
-        name: '图片',
-        type: 'folder',
-        path: '/图片',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'file-1',
-        name: '项目说明.md',
-        type: 'file',
-        size: 1024,
-        path: '/项目说明.md',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'file-2',
-        name: '设计稿.fig',
-        type: 'file',
-        size: 2048576,
-        path: '/设计稿.fig',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+  const actions = {
+    async uploadFile(file: File, path: string = '/'): Promise<FileUploadResponse> {
+      try {
+        state.value.uploadProgress = 0
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('directory', path)
+        const { data: { data } } = await fileApi.upload(file, path)
+        state.value.uploadProgress = 100
+        return data
+      } catch (error) {
+        state.value.uploadProgress = 0
+        throw error
       }
-    ]
+    },
 
-    state.value.files = mockFiles
-    state.value.folders = mockFiles.filter(file => file.type === 'folder')
+    async getFileTree(): Promise<FileTreeResponse> {
+      const { data: { data } } = await fileApi.getFileTree()
+      state.value.fileTree = data.children
+      return data
+    },
 
-    return state.value.files
-  }
+    // 获取当前目录的内容
+    getCurrentDirContent() {
+      let currentDir = state.value.fileTree;
+      
+      // 如果是根目录，直接返回
+      if (state.value.currentPath === '/') {
+        return currentDir;
+      }
+      
+      // 按路径逐级查找
+      const paths = state.value.currentPath.split('/').filter(Boolean);
+      for (const path of paths) {
+        const dir = currentDir.find(node => 
+          node.type === 'directory' && node.name === path
+        );
+        if (!dir || dir.type !== 'directory') return [];
+        currentDir = dir.children;
+      }
+      
+      return currentDir;
+    },
 
-  // 创建文件夹
-  const createFolder = async (name: string) => {
-    // TODO: 实现与后端 API 的集成
-    const newFolder: File = {
-      id: `folder-${Date.now()}`,
-      name,
-      type: 'folder',
-      path: `/${name}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    // 创建文件夹
+    async createDirectory(name: string, path?: string): Promise<string> {
+      const { data: { data } } = await fileApi.createDirectory(name, path)
+      return data
+    },
+
+    // 删除文件或目录
+    async delete(path: string): Promise<void> {
+      const { data: { data } } = await fileApi.delete(path)
+      return data
+    },
+
+    // 获取文件统计信息
+    async getFileStatistics(): Promise<FileStatisticsResponse> {
+      const { data: { data } } = await fileApi.getFileStatistics()
+      state.value.fileStatistics = data
+      return data
+    },
+
+    // 下载文件
+    async downloadFile(path: string): Promise<void> {
+      const response = await fileApi.download(path)
+      const blob = new Blob([response.data])
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', path.split('/').pop() || 'download')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    },
+
+    //检查当前目录是否有重复文件名
+    checkDuplicateFileName(fileName: string, currentPath?: string): boolean {
+      // 获取当前目录的文件列表
+      let currentDir = state.value.fileTree;
+      
+      // 如果指定了路径,则找到对应的目录
+      if (currentPath) {
+        const paths = currentPath.split('/').filter(Boolean);
+        for (const path of paths) {
+          const dir = currentDir.find(node => 
+            node.type === 'directory' && node.name === path
+          );
+          if (!dir || dir.type !== 'directory') return false;
+          currentDir = dir.children;
+        }
+      }
+
+      // 检查当前目录下是否存在同名文件
+      return currentDir.some(node => node.name === fileName);
     }
 
-    state.value.files.push(newFolder)
-    state.value.folders.push(newFolder)
-    return newFolder
-  }
-
-  // 重命名文件
-  const renameFile = async (id: string, newName: string) => {
-    // TODO: 实现与后端 API 的集成
-    const file = state.value.files.find(f => f.id === id)
-    if (file) {
-      file.name = newName
-      file.path = file.path.replace(/[^/]+$/, newName)
-      file.updatedAt = new Date().toISOString()
-    }
-    return file
-  }
-
-  // 移动文件
-  const moveFile = async (fileId: string, targetFolderId: string) => {
-    // TODO: 实现与后端 API 的集成
-    const file = state.value.files.find(f => f.id === fileId)
-    const targetFolder = state.value.files.find(f => f.id === targetFolderId)
-    if (file && targetFolder && targetFolder.type === 'folder') {
-      file.path = `${targetFolder.path}/${file.name}`
-      file.updatedAt = new Date().toISOString()
-    }
-    return file
-  }
-
-  // 删除文件
-  const deleteFile = async (id: string) => {
-    // TODO: 实现与后端 API 的集成
-    state.value.files = state.value.files.filter(f => f.id !== id)
-    state.value.folders = state.value.folders.filter(f => f.id !== id)
-    return true
   }
 
   return {
     state,
-    getFiles,
-    createFolder,
-    renameFile,
-    moveFile,
-    deleteFile
+    ...actions
   }
-}) 
+})

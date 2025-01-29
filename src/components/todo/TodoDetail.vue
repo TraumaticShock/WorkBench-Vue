@@ -171,20 +171,29 @@ const showError = ref(false)
 // 监听 todo 变化，更新表单数据
 watch(() => props.todo, (newTodo) => {
     if (newTodo?.id) {  // 编辑模式
-        form.value.id = newTodo.id
-        form.value.title = newTodo.title || ''
-        form.value.description = newTodo.description || ''
-        form.value.status = newTodo.status || 'pending'
-        form.value.priority = newTodo.priority || 'low'
-        form.value.dueDate = newTodo.dueDate || ''
-        form.value.category_id = newTodo.category_id || ''
+        form.value = {
+            id: newTodo.id,
+            title: newTodo.title || '',
+            description: newTodo.description || '',
+            status: newTodo.status || 'pending',
+            priority: newTodo.priority || 'low',
+            dueDate: newTodo.dueDate || '',
+            category_id: newTodo.category_id || '',
+            createdAt: newTodo.createdAt || '',
+            updatedAt: newTodo.updatedAt || ''
+        }
     } else {  // 新建模式
-        form.value.title = ''
-        form.value.description = ''
-        form.value.status = 'pending'
-        form.value.priority = 'low'
-        form.value.dueDate = ''
-        form.value.category_id = ''
+        form.value = {
+            id: undefined,  // 明确设置为 undefined
+            title: '',
+            description: '',
+            status: 'pending',
+            priority: 'low',
+            dueDate: '',
+            category_id: '',
+            createdAt: '',
+            updatedAt: ''
+        }
     }
 }, { immediate: true })
 
