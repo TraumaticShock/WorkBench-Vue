@@ -63,7 +63,6 @@
 </style>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import TodoDetail from '@/components/todo/TodoDetail.vue'
 import { useTodoStore } from '@/stores/todo'
@@ -85,8 +84,16 @@ const handleSubmit = async (todoData: CreateTodoFormParams) => {
     try {
         await todoStore.createTodo(todoData)
         handleModal('todo_modal', 'close')
-        // 刷新所有相关数据
-        await todoStore.refreshAllTodoData()
+        // 创建成功后刷新统计数据和当前列表
+        await Promise.all([
+            todoStore.refreshStats(),
+            todoStore.getTodoPage({
+                page: todoStore.state.todoPage.current,
+                size: 10,
+                status: todoStore.state.currentFilter.status,
+                priority: todoStore.state.currentFilter.priority
+            })
+        ])
         ElMessage.success('创建待办成功')
     } catch (error: any) {
         console.error('创建待办失败:', error)

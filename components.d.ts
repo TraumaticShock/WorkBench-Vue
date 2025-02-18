@@ -28,6 +28,7 @@ declare module 'vue' {
     NoteModal: typeof import('./src/components/notes/NoteModal.vue')['default']
     NoteStats: typeof import('./src/components/notes/NoteStats.vue')['default']
     Overview: typeof import('./src/components/dashboard/Overview.vue')['default']
+    PageSearchBar: typeof import('./src/components/common/PageSearchBar.vue')['default']
     Pagination: typeof import('./src/components/common/Pagination.vue')['default']
     QuickAdd: typeof import('./src/components/dashboard/QuickAdd.vue')['default']
     RecentActivities: typeof import('./src/components/dashboard/RecentActivities.vue')['default']

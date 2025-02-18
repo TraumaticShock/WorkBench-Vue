@@ -175,11 +175,11 @@ const currentFilter = ref({
 
 // 统一的标签切换处理方法
 const handleTagClick = async (filter: { status?: string | undefined, priority?: string | undefined }) => {
-    await todoStore.initTodoPage()
     currentFilter.value = {
         status: filter.status ?? undefined,
         priority: filter.priority ?? undefined
     }
+    await todoStore.initTodoPage()
     await fetchTodoList(1, false)
     scrollToTop()
 }
@@ -316,7 +316,7 @@ const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending', ev
             await fetchTodoList(todoStore.state.todoPage.current - 1)
         }
 
-        // 只更新统计数据
+        // 更新统计数据
         await todoStore.refreshStats()
     } catch (error) {
         console.error('更新待办状态失败:', error)

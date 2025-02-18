@@ -14,6 +14,10 @@ export const todoApi = {
   getTodoPage(params: TodoPageParams) {
     return request.get<ApiResponse<any>>('/todos', { params });
   },
+  // 根据id获取待办
+  getTodoById(id: string) {
+    return request.get<ApiResponse<any>>(`/todos/${id}`);
+  },
   // 创建待办
   createTodo(data: CreateTodoFormParams) {
     return request.post<ApiResponse<any>>('/todos', data);

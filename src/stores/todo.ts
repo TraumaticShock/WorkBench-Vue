@@ -6,6 +6,7 @@ import type {
   TodoPageParams,
 
   TodoPage,
+  Todo,
 } from '@/types/todo';
 import { getTodayString } from '@/utils';
 
@@ -20,6 +21,15 @@ export const useTodoStore = defineStore('todo', () => {
       current: 1,
       pages: 0,
     } as TodoPage,
+
+    // 当前筛选条件
+    currentFilter: {
+      status: undefined as string | undefined,
+      priority: undefined as string | undefined
+    },
+
+    // 当前选中的待办
+    selectedTodo: null as Todo | null,
 
     // 统计数据
     stats: {

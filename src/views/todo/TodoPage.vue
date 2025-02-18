@@ -57,14 +57,11 @@
                 <!-- 搜索栏 -->
                 <div class="p-4 border-b border-base-200">
                     <div class="relative">
-                        <input type="text" placeholder="搜索待办..." class="input input-bordered w-full pl-10"
-                            v-model="searchQuery" @input="handleSearch" />
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
+                        <PageSearchBar 
+                            type="todo"
+                            placeholder="搜索待办事项..."
+                            @result-click="handleSearchResultClick" 
+                        />
                     </div>
                 </div>
 
@@ -211,7 +208,9 @@ import TodoDetail from '@/components/todo/TodoDetail.vue'
 import Pagination from '@/components/common/Pagination.vue'
 import CategoryManageDialog from '@/components/todo/TodoCategoryManageDialog.vue'
 import { storeToRefs } from 'pinia'
-
+import PageSearchBar from '@/components/common/PageSearchBar.vue'
+import type { SearchResult } from '@/types/search'
+import { todoApi } from '@/api/todo'
 const todoStore = useTodoStore()
 const { state } = storeToRefs(todoStore)
 const todoCategoryStore = useTodoCategoryStore()
@@ -314,6 +313,11 @@ const toggleTodo = async (id: string, currentStatus: 'completed' | 'pending', ev
                 // 否则直接更新状态
                 todoStore.state.todoPage.records[index].status = newStatus
             }
+
+            // 如果当前选中的是这个待办，也需要更新选中状态
+            if (todoStore.state.selectedTodo?.id === id) {
+                todoStore.state.selectedTodo.status = newStatus
+            }
         }
 
         // 后端更新
@@ -341,7 +345,7 @@ const changePage = async (page: number) => {
 
 // 选择待办
 const selectTodo = (todo: Todo) => {
-    selectedTodo.value = { ...todo }
+    todoStore.state.selectedTodo = { ...todo }
 }
 
 // 保存更改
@@ -371,7 +375,7 @@ const saveChanges = async (updatedTodo: Todo) => {
         ])
 
         // 清除选中状态
-        selectedTodo.value = null
+        todoStore.state.selectedTodo = null
     } catch (error) {
         console.error('保存待办失败:', error)
     }
@@ -407,16 +411,27 @@ onMounted(async () => {
     ])
 })
 
-// 添加新方法
+// 创建新待办
 const createNewTodo = () => {
-    selectedTodo.value = {
+    todoStore.state.selectedTodo = {
         id: null,
         title: '',
         description: '',
         status: 'pending',
         priority: 'low',
         category_id: '',
-        dueDate: null
+        dueDate: null,
+        createdAt: '',
+        updatedAt: ''
+    }
+}
+
+// 处理搜索结果点击
+const handleSearchResultClick = (result: SearchResult) => {
+    if (result.type === 'todo') {
+        todoApi.getTodoById(result.id).then(todo => {
+                todoStore.state.selectedTodo = todo.data.data
+            })
     }
 }
 </script>

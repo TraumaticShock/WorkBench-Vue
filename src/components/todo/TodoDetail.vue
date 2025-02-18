@@ -134,8 +134,13 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import type { Todo } from '@/types/todo'
+import { useTodoStore } from '@/stores/todo'
+import { storeToRefs } from 'pinia'
 
 import CategoryTree from './TodoCategoryTree.vue'
+
+const todoStore = useTodoStore()
+const { state } = storeToRefs(todoStore)
 
 interface Props {
     todo: Todo | Partial<Todo> | null
@@ -145,16 +150,14 @@ const props = defineProps<Props>()
 const emit = defineEmits(['save', 'cancel'])
 
 // 表单数据
-const form = ref<Todo>({
-    id: props.todo?.id,
-    title: '',
-    description: '',
-    priority: 'low',
-    status: 'pending',
-    dueDate: '',
-    category_id: '',
-    createdAt: '',
-    updatedAt: ''
+const form = ref<Partial<Todo>>({
+    id: state.value.selectedTodo?.id || null,
+    title: state.value.selectedTodo?.title || '',
+    description: state.value.selectedTodo?.description || '',
+    status: state.value.selectedTodo?.status || 'pending',
+    priority: state.value.selectedTodo?.priority || 'low',
+    category_id: state.value.selectedTodo?.category_id || '',
+    dueDate: state.value.selectedTodo?.dueDate || null
 })
 
 // 表单验证
@@ -168,34 +171,20 @@ const formValid = computed(() => {
 // 错误提示
 const showError = ref(false)
 
-// 监听 todo 变化，更新表单数据
-watch(() => props.todo, (newTodo) => {
-    if (newTodo?.id) {  // 编辑模式
+// 监听 selectedTodo 变化
+watch(() => state.value.selectedTodo, (newTodo) => {
+    if (newTodo) {
         form.value = {
             id: newTodo.id,
-            title: newTodo.title || '',
-            description: newTodo.description || '',
-            status: newTodo.status || 'pending',
-            priority: newTodo.priority || 'low',
-            dueDate: newTodo.dueDate || '',
-            category_id: newTodo.category_id || '',
-            createdAt: newTodo.createdAt || '',
-            updatedAt: newTodo.updatedAt || ''
-        }
-    } else {  // 新建模式
-        form.value = {
-            id: undefined,  // 明确设置为 undefined
-            title: '',
-            description: '',
-            status: 'pending',
-            priority: 'low',
-            dueDate: '',
-            category_id: '',
-            createdAt: '',
-            updatedAt: ''
+            title: newTodo.title,
+            description: newTodo.description,
+            status: newTodo.status,
+            priority: newTodo.priority,
+            category_id: newTodo.category_id,
+            dueDate: newTodo.dueDate
         }
     }
-}, { immediate: true })
+}, { deep: true })
 
 // 保存
 const handleSave = () => {

@@ -31,10 +31,11 @@
             <!-- 搜索栏 -->
             <div class="p-4 border-b border-base-200">
                 <div class="relative">
-                    <input type="text" placeholder="搜索笔记..." class="input input-bordered w-full pl-10" />
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <PageSearchBar 
+                        type="note"
+                        placeholder="搜索笔记..."
+                        @result-click="handleSearchResultClick" 
+                    />
                 </div>
             </div>
             <!-- 内容区域 -->
@@ -102,7 +103,7 @@
                                                 </svg>
                                             </button>
                                             <button class="btn btn-ghost btn-xs btn-square text-error hover:bg-error/10"
-                                                @click="handleDelete(note.id)">
+                                                @click.stop="handleDelete(note.id)">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
                                                     viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -174,6 +175,8 @@ import CategoryTree from '@/components/notes/NoteCategoryTree.vue'
 import { useRouter } from 'vue-router'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import type { NoteCategory } from '@/types/noteCategory'
+import PageSearchBar from '@/components/common/PageSearchBar.vue'
+import type { SearchResult } from '@/types/search'
 
 const noteCategoryStore = useNoteCategoryStore()
 const noteStore = useNoteStore()
@@ -234,6 +237,13 @@ const confirmDelete = async () => {
 
 const handleCreateNote = () => {
     router.push({ name: 'noteEdit' });  // 跳转到编辑页面，不带 id 参数表示新建
+}
+
+// 处理搜索结果点击
+const handleSearchResultClick = (result: SearchResult) => {
+    if (result.type === 'note') {
+        router.push(`/note/detail/${result.id}`)
+    }
 }
 
 onMounted(() => {

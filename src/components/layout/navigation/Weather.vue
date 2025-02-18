@@ -55,12 +55,31 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
+import { getLocation } from '@/utils/location'
 
 const currentDate = ref(new Date().toLocaleDateString('zh-CN', {
     month: 'long',
     day: 'numeric',
     weekday: 'long'
 }))
+
+interface WeatherResponse {
+    status: string;
+    info: string;
+    infocode: string;
+    count: string;
+    lives: Array<{
+        province: string;
+        city: string;
+        adcode: string;
+        weather: string;
+        temperature: string;
+        winddirection: string;
+        windpower: string;
+        humidity: string;
+        reporttime: string;
+    }>;
+}
 
 interface WeatherInfo {
     text: string;
@@ -69,55 +88,41 @@ interface WeatherInfo {
 
 const weather = ref<WeatherInfo | null>(null)
 
-// 获取位置信息
-const getLocation = (): Promise<GeolocationPosition> => {
-    return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-            reject(new Error('浏览器不支持地理位置'));
-            return;
-        }
-        navigator.geolocation.getCurrentPosition(resolve, reject);
-    });
-};
-
 // 获取天气信息
-const getWeather = async (latitude: number, longitude: number) => {
+const getWeather = async (adcode: string) => {
     try {
-        // 使用和风天气 API
-        const response = await axios.get(`https://devapi.qweather.com/v7/weather/now`, {
+        const response = await axios.get<WeatherResponse>('https://restapi.amap.com/v3/weather/weatherInfo', {
             params: {
-                key: '792ca158cac241e790165940b0d592c1',
-                location: `${longitude.toFixed(2)},${latitude.toFixed(2)}`,
-            },
-            headers: {
-                'Content-Type': 'application/json',
+                key: 'ef26c023c447aa07786bf9f32db40fd5',
+                city: adcode,
+                extensions: 'base'
             }
         });
-
-        if (response.data.code === '200') {
+        if (response.data.status === '1' && response.data.lives?.length > 0) {
+            const live = response.data.lives[0];
             weather.value = {
-                text: response.data.now.text,
-                temp: response.data.now.temp
+                text: live.weather,
+                temp: parseInt(live.temperature)
             };
+        } else {
+            console.error('获取天气信息失败:', response.data.info);
+            throw new Error(`获取天气信息失败: ${response.data.info}`);
         }
     } catch (error) {
         console.error('获取天气信息失败:', error);
-        // 添加更详细的错误信息
-        if (axios.isAxiosError(error)) {
-            console.error('错误详情:', {
-                status: error.response?.status,
-                data: error.response?.data,
-                config: error.config
-            });
-        }
+        weather.value = {
+            text: '获取失败',
+            temp: 0
+        };
     }
 };
 
-// 修改初始化函数，添加错误处理
+// 修改初始化函数
 const initWeather = async () => {
     try {
-        const position = await getLocation();
-        await getWeather(position.coords.latitude, position.coords.longitude);
+        const location = await getLocation();
+        // 使用城市编码获取天气
+        await getWeather(location.adcode);
     } catch (error) {
         console.error('获取位置或天气信息失败:', error);
         weather.value = {

@@ -47,15 +47,16 @@
             <!-- 搜索栏 -->
             <div class="p-4 border-b border-base-200">
                 <div class="relative">
-                    <input type="text" placeholder="搜索文件..." class="input input-bordered w-full pl-10"/>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                    </svg>
-                                </div>
-                            </div>
+                    <PageSearchBar 
+                        type="file"
+                        placeholder="搜索文件..."
+                        @result-click="handleSearchResultClick" 
+                    />
+                </div>
+            </div>
 
-                        <!-- 路径导航栏 -->
-                        <div class="px-6 py-3 border-b border-base-200 flex items-center gap-2 bg-base-100/50 backdrop-blur-sm">
+            <!-- 路径导航栏 -->
+            <div class="px-6 py-3 border-b border-base-200 flex items-center gap-2 bg-base-100/50 backdrop-blur-sm">
                 <button class="btn btn-ghost btn-sm btn-circle" @click="handlePathClick('/')" 
                     :class="{'text-primary': state.currentPath === '/'}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,17 +137,17 @@
                             title="下载">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                        </button>
+                                            </svg>
+                                        </button>
                         <!-- 删除按钮 -->
                         <button class="btn btn-ghost btn-xs btn-circle opacity-0 group-hover:opacity-100 transition-opacity"
                             @click.stop="handleDelete(node)"
                             title="删除">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    </div>
+                                            </svg>
+                                        </button>
+                                    </div>
                 </div>
             </div>
         </div>
@@ -190,6 +191,9 @@ import { onMounted } from 'vue'
 import { formatFileSize } from '@/utils'
 import type { FileNode, TreeNode } from '@/types/file'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import PageSearchBar from '@/components/common/PageSearchBar.vue'
+import { useRouter } from 'vue-router'
+import type { SearchResult } from '@/types/search'
 
 onMounted(async () => {
     await fileStore.getFileTree()
@@ -204,6 +208,7 @@ const newFolderName = ref('')
 const confirmDialogRef = ref()
 const showConfirmDialog = ref(false)
 const currentNode = ref<TreeNode | null>(null)
+const router = useRouter()
 
 // 判断是否是图片文件
 const isImageFile = (node: FileNode) => {
@@ -348,6 +353,17 @@ const handleConfirmDelete = async () => {
     } catch (error) {
         console.error('删除失败:', error)
         alert('删除失败，请重试')
+    }
+}
+
+// 处理搜索结果点击
+const handleSearchResultClick = (result: SearchResult) => {
+    if (result.type === 'file') {
+        router.push(`/file`)
+            // 截取第三个/之后 和 最后一个/前的路径
+            const pathParts = result.path?.split('/') || []
+            const path = pathParts.slice(4, -1).join('/')
+            fileStore.state.currentPath = path
     }
 }
 </script>
