@@ -12,7 +12,8 @@ export const fileApi = {
         return request.post<ApiResponse<FileUploadResponse>>('/file/upload', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
-            }
+            },
+            timeout: 99999999999
         });
     },  
 
